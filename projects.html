@@ -8,6 +8,228 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase-config.js"></script>
 <link rel="stylesheet" href="styles.css">
+<style>
+/* ── PROJECTS TABLE EXTRAS ───────────────────────────────────────────────────*/
+.proj-table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.proj-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.proj-table th {
+  background: var(--accent);
+  color: rgba(255,255,255,0.9);
+  padding: 12px 18px;
+  text-align: center;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  white-space: nowrap;
+}
+.proj-table th:last-child { border-right: none; }
+.proj-table th.th-name { text-align: left; }
+
+.proj-table td {
+  padding: 0;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.proj-table td:last-child { border-right: none; }
+.proj-table tr:last-child td { border-bottom: none; }
+
+/* Tier colour bands */
+.proj-table tr.tier-bronze td { background: #fffbf5; }
+.proj-table tr.tier-silver td { background: #f7f9fc; }
+.proj-table tr.tier-gold   td { background: #fffef0; }
+.proj-table tr.tier-platinum td { background: #f5f0ff; }
+
+.proj-table tr.tier-bronze:hover td  { background: #fff3e0; }
+.proj-table tr.tier-silver:hover td  { background: #eef4fb; }
+.proj-table tr.tier-gold:hover td    { background: #fffbd0; }
+.proj-table tr.tier-platinum:hover td{ background: #ede8ff; }
+
+/* Name cell — pill badge */
+.tier-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px 6px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.tier-pill-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+
+.pill-bronze   { background: #fef0e0; color: #8a4800; border: 1.5px solid #f0c080; }
+.pill-bronze .tier-pill-dot { background: #c87020; }
+.pill-silver   { background: #f0f4fa; color: #3a4a6a; border: 1.5px solid #b0bcd8; }
+.pill-silver .tier-pill-dot { background: #7090b8; }
+.pill-gold     { background: #fffacc; color: #7a5c00; border: 1.5px solid #e8d040; }
+.pill-gold .tier-pill-dot   { background: #c89800; }
+.pill-platinum { background: #ede8ff; color: #4a2890; border: 1.5px solid #b09ae0; }
+.pill-platinum .tier-pill-dot{ background: #7050c0; }
+
+/* Read-only cells */
+.proj-cell {
+  padding: 13px 18px;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  text-align: right;
+}
+.proj-cell-center { text-align: center; }
+.proj-cell-name   { text-align: left; padding: 8px 14px; }
+
+/* Dollar sign prefix for amount cells */
+.proj-amount {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  justify-content: flex-end;
+  width: 100%;
+}
+.proj-dollar {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: 'DM Mono', monospace;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* ROI % highlight */
+.proj-roi-pct {
+  font-weight: 600;
+  color: #1a6b1a;
+}
+
+/* Admin editable cell inputs — match BTC table feel */
+.proj-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: none;
+  background: transparent;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  text-align: right;
+  transition: background 0.1s;
+}
+.proj-input:focus {
+  background: #eef4fb;
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+.proj-input.input-name {
+  text-align: left;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+}
+.proj-input.input-roi-pct {
+  color: #1a6b1a;
+  font-weight: 600;
+}
+/* auto-calc cells: slightly dimmed to show they're derived */
+.proj-input.input-derived {
+  color: var(--text-muted);
+  background: var(--cell-bg);
+  cursor: not-allowed;
+}
+
+/* Final equity — accent colour */
+.proj-final {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.proj-table-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--cell-bg);
+  gap: 10px;
+}
+
+.proj-save-status {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: 'DM Mono', monospace;
+}
+.proj-save-status.saved { color: var(--accent); }
+
+/* Admin panel layout mirrors BTC page */
+.proj-admin-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+}
+
+.proj-info-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px 20px;
+  box-shadow: var(--shadow);
+  height: fit-content;
+}
+.proj-info-card h3 {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  font-family: 'DM Mono', monospace;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.proj-info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+}
+.proj-info-row:last-child { border-bottom: none; }
+.proj-info-label { color: var(--text-muted); }
+.proj-info-val   { font-family: 'DM Mono', monospace; font-weight: 600; color: var(--text); }
+
+.note-box {
+  margin-top: 14px;
+  background: #fffbf0;
+  border: 1px solid #f0d080;
+  border-radius: 8px;
+  padding: 10px 13px;
+  font-size: 11px;
+  color: #7a5800;
+  line-height: 1.5;
+  font-family: 'DM Mono', monospace;
+}
+
+@media (max-width: 900px) {
+  .proj-admin-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .proj-table-wrap { overflow-x: auto; }
+  .proj-table { min-width: 680px; }
+  .proj-table th, .proj-cell { padding: 10px 12px; }
+}
+</style>
 </head>
 <body>
 
@@ -38,42 +260,106 @@
 <!-- TOAST -->
 <div class="toast" id="toast"><span class="toast-dot"></span><span id="toastMsg"></span></div>
 
-<!-- MAIN CONTENT -->
-<div class="page-wrapper">
+<!-- ── GUEST VIEW ─────────────────────────────────────────────────────────── -->
+<div id="guestView" class="page-wrapper">
   <div class="page-header">
     <div>
       <div class="page-title">Projects</div>
-      <div class="page-subtitle" id="pageSubtitle">Sign in to access this section</div>
+      <div class="page-subtitle">Sign in to access this section</div>
     </div>
   </div>
-
-  <!-- Shown when not logged in -->
-  <div id="guestView">
-    <div class="main-content" style="margin:0;max-width:100%;padding:0;">
-      <div class="main-hero" style="border-radius:12px;">
-        <h1 style="font-size:24px;">HKEX:Projects</h1>
-        <p>Sign in with your personal brokerage credentials to access project listings.</p>
-        <button class="btn btn-primary" style="padding:11px 28px;font-size:15px;" onclick="openLoginModal()">
-          Sign In to Continue
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Shown when logged in -->
-  <div id="authView" style="display:none;">
-    <div class="empty-state">
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M12 6v6l4 2"/>
-      </svg>
-      <h2>HKEX:Projects</h2>
-      <p>No offers available at the moment. Please come check later.</p>
+  <div class="main-content" style="margin:0;max-width:100%;padding:0;">
+    <div class="main-hero" style="border-radius:12px;">
+      <h1 style="font-size:24px;">HKEX:Projects</h1>
+      <p>Sign in with your personal brokerage credentials to access project listings and investment tiers.</p>
+      <button class="btn btn-primary" style="padding:11px 28px;font-size:15px;" onclick="openLoginModal()">
+        Sign In to Continue
+      </button>
     </div>
   </div>
 </div>
 
-<!-- LOGIN MODAL -->
+<!-- ── USER VIEW ──────────────────────────────────────────────────────────── -->
+<div id="userView" style="display:none;" class="page-wrapper">
+  <div class="page-header">
+    <div>
+      <div class="page-title" id="userWelcomeTitle">Projects</div>
+      <div class="page-subtitle">Available investment tiers — click any row to enquire</div>
+    </div>
+  </div>
+  <div class="proj-table-wrap">
+    <table class="proj-table" id="userProjectsTable">
+      <thead>
+        <tr>
+          <th class="th-name">Project Name</th>
+          <th>Project Value</th>
+          <th>Trading Period</th>
+          <th>Guaranteed RoI, %</th>
+          <th>Guaranteed RoI, $</th>
+          <th>Final Equity</th>
+        </tr>
+      </thead>
+      <tbody id="userProjectsTbody">
+        <tr><td colspan="6" style="padding:32px;text-align:center;color:var(--text-muted);font-size:13px;">Loading…</td></tr>
+      </tbody>
+    </table>
+    <div class="proj-table-actions">
+      <span class="proj-save-status">Contact your broker to invest in any of the tiers above.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADMIN VIEW ─────────────────────────────────────────────────────────── -->
+<div id="adminView" style="display:none;" class="page-wrapper">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Projects — Admin</div>
+      <div class="page-subtitle">Edit project tiers. RoI $ and Final Equity are calculated automatically.</div>
+    </div>
+  </div>
+  <div class="proj-admin-layout">
+
+    <!-- Left: info panel -->
+    <div>
+      <div class="proj-info-card">
+        <h3>Auto-Calculations</h3>
+        <div class="proj-info-row"><span class="proj-info-label">RoI $</span><span class="proj-info-val">Value × RoI %</span></div>
+        <div class="proj-info-row"><span class="proj-info-label">Final Equity</span><span class="proj-info-val">Value + RoI $</span></div>
+        <div class="note-box">
+          Edit any cell and click <strong>Save Changes</strong>. RoI $ and Final Equity recalculate live as you type.
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: editable table -->
+    <div>
+      <div class="proj-table-wrap">
+        <table class="proj-table" id="adminProjectsTable">
+          <thead>
+            <tr>
+              <th class="th-name">Project Name</th>
+              <th>Project Value</th>
+              <th>Trading Period</th>
+              <th>Guaranteed RoI, %</th>
+              <th>Guaranteed RoI, $</th>
+              <th>Final Equity</th>
+            </tr>
+          </thead>
+          <tbody id="adminProjectsTbody">
+            <tr><td colspan="6" style="padding:32px;text-align:center;color:var(--text-muted);font-size:13px;">Loading…</td></tr>
+          </tbody>
+        </table>
+        <div class="proj-table-actions">
+          <span class="proj-save-status" id="adminSaveStatus"></span>
+          <button class="btn btn-primary" onclick="saveProjects()">Save Changes</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── LOGIN MODAL ────────────────────────────────────────────────────────── -->
 <div class="modal-overlay" id="loginModal">
   <div class="modal" style="max-width:380px;">
     <h3>Sign In</h3>
@@ -102,9 +388,28 @@
 
 <script>
 const sb = window._supabase;
-let currentUser = null;
+let currentUser  = null;
+let projectsData = [];   // in-memory cache
+
+// ── TIER STYLING ──────────────────────────────────────────────────────────────
+const TIER_CLASS = { Bronze:'bronze', Silver:'silver', Gold:'gold', Platinum:'platinum' };
+
+function getTierClass(name) {
+  const key = (name || '').trim();
+  return TIER_CLASS[key] || 'silver';
+}
 
 // ── UTILS ─────────────────────────────────────────────────────────────────────
+function fmtAmt(v) {
+  const n = parseFloat(String(v).replace(/[^0-9.]/g, ''));
+  if (isNaN(n)) return '';
+  return n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
+function amountCell(val, extraClass) {
+  return `<div class="proj-amount"><span class="proj-dollar">$</span><span class="${extraClass||''}">${fmtAmt(val)}</span></div>`;
+}
+
 function showToast(msg, type) {
   const t = document.getElementById('toast');
   document.getElementById('toastMsg').textContent = msg;
@@ -113,24 +418,200 @@ function showToast(msg, type) {
 }
 
 function setHeader(user) {
-  document.getElementById('headerUserBadge').textContent = user ? user.name : '';
+  const badge = user ? user.name + (user.role === 'admin' ? ' · admin' : '') : '';
+  document.getElementById('headerUserBadge').textContent = badge;
   document.getElementById('btnSignOut').style.display = user ? '' : 'none';
 }
 
-function showAuthView(user) {
-  currentUser = user;
-  setHeader(user);
-  document.getElementById('guestView').style.display = 'none';
-  document.getElementById('authView').style.display = '';
-  document.getElementById('pageSubtitle').textContent = 'Structured investment opportunities';
+// ── SUPABASE DATA ─────────────────────────────────────────────────────────────
+const DEFAULT_PROJECTS = [
+  { name:'Bronze',   value:3500,  period:13, roi_pct:68, roi_usd:2380,  final_equity:5880  },
+  { name:'Silver',   value:10000, period:11, roi_pct:72, roi_usd:7200,  final_equity:17200 },
+  { name:'Gold',     value:25000, period:10, roi_pct:74, roi_usd:18500, final_equity:43500 },
+  { name:'Platinum', value:50000, period:9,  roi_pct:77, roi_usd:38500, final_equity:88500 },
+];
+
+async function loadProjects() {
+  const { data, error } = await sb.from('projects_data').select('data').eq('id', 1).single();
+  if (error || !data) return JSON.parse(JSON.stringify(DEFAULT_PROJECTS));
+  return data.data;
 }
 
+async function saveProjectsToDb(rows) {
+  const { error } = await sb.from('projects_data').upsert(
+    { id: 1, data: rows, updated_at: new Date().toISOString() },
+    { onConflict: 'id' }
+  );
+  return !error;
+}
+
+// ── RENDER: USER (read-only) ───────────────────────────────────────────────────
+function renderUserTable(rows) {
+  const tbody = document.getElementById('userProjectsTbody');
+  if (!tbody) return;
+  tbody.innerHTML = rows.map(p => {
+    const tc = getTierClass(p.name);
+    return `
+    <tr class="tier-${tc}">
+      <td class="proj-cell proj-cell-name">
+        <span class="tier-pill pill-${tc}">
+          <span class="tier-pill-dot"></span>${escHtml(p.name)}
+        </span>
+      </td>
+      <td class="proj-cell">${amountCell(p.value)}</td>
+      <td class="proj-cell proj-cell-center" style="font-family:'DM Mono',monospace;">${escHtml(String(p.period))} days</td>
+      <td class="proj-cell proj-cell-center"><span class="proj-roi-pct">${escHtml(String(p.roi_pct))}%</span></td>
+      <td class="proj-cell">${amountCell(p.roi_usd)}</td>
+      <td class="proj-cell">${amountCell(p.final_equity, 'proj-final')}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── RENDER: ADMIN (editable) ───────────────────────────────────────────────────
+function renderAdminTable(rows) {
+  const tbody = document.getElementById('adminProjectsTbody');
+  if (!tbody) return;
+  tbody.innerHTML = rows.map((p, i) => {
+    const tc = getTierClass(p.name);
+    // roi_usd and final_equity are derived — shown in dimmed read-only inputs
+    const roiUsd      = calcRoiUsd(p.value, p.roi_pct);
+    const finalEquity = calcFinalEquity(p.value, roiUsd);
+    return `
+    <tr class="tier-${tc}" data-row="${i}">
+      <td style="padding:4px 8px;min-width:140px;">
+        <input class="proj-input input-name" data-row="${i}" data-field="name"
+          value="${escHtml(p.name)}"
+          oninput="onAdminInput(this)">
+      </td>
+      <td style="padding:4px 8px;min-width:120px;">
+        <div style="display:flex;align-items:center;padding:0 4px;">
+          <span class="proj-dollar" style="font-size:11px;flex-shrink:0;">$</span>
+          <input class="proj-input" data-row="${i}" data-field="value"
+            value="${escHtml(String(p.value))}"
+            oninput="onAdminInput(this)" style="padding-left:4px;">
+        </div>
+      </td>
+      <td style="padding:4px 8px;min-width:110px;">
+        <input class="proj-input proj-cell-center" data-row="${i}" data-field="period"
+          value="${escHtml(String(p.period))}"
+          oninput="onAdminInput(this)" style="text-align:center;">
+      </td>
+      <td style="padding:4px 8px;min-width:110px;">
+        <div style="display:flex;align-items:center;justify-content:center;gap:2px;">
+          <input class="proj-input input-roi-pct" data-row="${i}" data-field="roi_pct"
+            value="${escHtml(String(p.roi_pct))}"
+            oninput="onAdminInput(this)" style="text-align:center;max-width:60px;">
+          <span style="font-size:12px;color:#1a6b1a;font-weight:600;padding-right:6px;">%</span>
+        </div>
+      </td>
+      <td style="padding:4px 8px;min-width:130px;" id="cell-roi-${i}">
+        <div style="display:flex;align-items:center;padding:0 4px;">
+          <span class="proj-dollar" style="font-size:11px;flex-shrink:0;">$</span>
+          <input class="proj-input input-derived" data-row="${i}" data-field="roi_usd"
+            value="${escHtml(fmtAmt(roiUsd))}" readonly tabindex="-1" style="padding-left:4px;">
+        </div>
+      </td>
+      <td style="padding:4px 8px;min-width:130px;" id="cell-final-${i}">
+        <div style="display:flex;align-items:center;padding:0 4px;">
+          <span class="proj-dollar" style="font-size:11px;flex-shrink:0;">$</span>
+          <input class="proj-input input-derived proj-final" data-row="${i}" data-field="final_equity"
+            value="${escHtml(fmtAmt(finalEquity))}" readonly tabindex="-1" style="padding-left:4px;">
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── CALCULATIONS ──────────────────────────────────────────────────────────────
+function calcRoiUsd(value, roiPct) {
+  const v = parseFloat(String(value).replace(/[^0-9.]/g,''));
+  const r = parseFloat(String(roiPct).replace(/[^0-9.]/g,''));
+  if (isNaN(v) || isNaN(r)) return 0;
+  return Math.round(v * r / 100 * 100) / 100;
+}
+
+function calcFinalEquity(value, roiUsd) {
+  const v = parseFloat(String(value).replace(/[^0-9.]/g,''));
+  const r = parseFloat(String(roiUsd));
+  if (isNaN(v) || isNaN(r)) return 0;
+  return Math.round((v + r) * 100) / 100;
+}
+
+// ── ADMIN INPUT HANDLER ───────────────────────────────────────────────────────
+function onAdminInput(el) {
+  const i     = parseInt(el.dataset.row);
+  const field = el.dataset.field;
+  const raw   = el.value;
+
+  // sync to in-memory store
+  if (field === 'name') {
+    projectsData[i].name = raw;
+    // update tier row class live
+    const tr = el.closest('tr');
+    tr.className = tr.className.replace(/tier-\w+/, 'tier-' + getTierClass(raw));
+  } else if (field === 'value') {
+    projectsData[i].value = parseFloat(raw.replace(/[^0-9.]/g,'')) || 0;
+  } else if (field === 'period') {
+    projectsData[i].period = parseInt(raw.replace(/[^0-9]/g,'')) || 0;
+  } else if (field === 'roi_pct') {
+    projectsData[i].roi_pct = parseFloat(raw.replace(/[^0-9.]/g,'')) || 0;
+  }
+
+  // Recalculate derived fields
+  const roiUsd      = calcRoiUsd(projectsData[i].value, projectsData[i].roi_pct);
+  const finalEquity = calcFinalEquity(projectsData[i].value, roiUsd);
+  projectsData[i].roi_usd      = roiUsd;
+  projectsData[i].final_equity = finalEquity;
+
+  // Update derived input displays
+  const roiInput   = document.querySelector(`#cell-roi-${i} input`);
+  const finalInput = document.querySelector(`#cell-final-${i} input`);
+  if (roiInput)   roiInput.value   = fmtAmt(roiUsd);
+  if (finalInput) finalInput.value = fmtAmt(finalEquity);
+
+  // Mark unsaved
+  const st = document.getElementById('adminSaveStatus');
+  if (st) { st.textContent = '● Unsaved changes'; st.className = 'proj-save-status'; }
+}
+
+// ── SAVE ──────────────────────────────────────────────────────────────────────
+async function saveProjects() {
+  const btn = document.querySelector('#adminView .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
+  const ok = await saveProjectsToDb(projectsData);
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Save Changes'; }
+  const st = document.getElementById('adminSaveStatus');
+  if (ok) {
+    if (st) { st.textContent = '✓ Saved'; st.className = 'proj-save-status saved'; }
+    setTimeout(() => { if (st) { st.textContent = ''; st.className = 'proj-save-status'; } }, 2500);
+    showToast('Project data saved', 'success');
+  } else {
+    if (st) { st.textContent = '✗ Save failed'; st.className = 'proj-save-status'; }
+    showToast('Save failed — check permissions');
+  }
+}
+
+// ── VIEW SWITCHING ────────────────────────────────────────────────────────────
 function showGuestView() {
-  currentUser = null;
-  setHeader(null);
-  document.getElementById('guestView').style.display = '';
-  document.getElementById('authView').style.display = 'none';
-  document.getElementById('pageSubtitle').textContent = 'Sign in to access this section';
+  document.getElementById('guestView').style.display  = '';
+  document.getElementById('userView').style.display   = 'none';
+  document.getElementById('adminView').style.display  = 'none';
+}
+
+function showUserView(user) {
+  document.getElementById('guestView').style.display  = 'none';
+  document.getElementById('userView').style.display   = '';
+  document.getElementById('adminView').style.display  = 'none';
+  const t = document.getElementById('userWelcomeTitle');
+  if (t) t.textContent = 'Projects';
+}
+
+function showAdminView() {
+  document.getElementById('guestView').style.display  = 'none';
+  document.getElementById('userView').style.display   = 'none';
+  document.getElementById('adminView').style.display  = '';
 }
 
 // ── LOGIN MODAL ───────────────────────────────────────────────────────────────
@@ -147,7 +628,7 @@ function closeLoginModal() {
 
 async function doModalLogin() {
   const btn = document.getElementById('modalLoginBtn');
-  btn.disabled = true; btn.textContent = 'Signing in...';
+  btn.disabled = true; btn.textContent = 'Signing in…';
   const email    = document.getElementById('modalLoginUsername').value.trim().toLowerCase();
   const password = document.getElementById('modalLoginPassword').value;
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
@@ -164,14 +645,35 @@ async function doModalLogin() {
   }
   btn.disabled = false; btn.textContent = 'Sign In';
   closeLoginModal();
-  showAuthView(profile);
+  currentUser = profile;
+  setHeader(profile);
+  await afterLogin();
   showToast('Signed in as ' + profile.name, 'success');
 }
 
 async function doSignOut() {
   await sb.auth.signOut();
+  currentUser = null;
+  setHeader(null);
   showGuestView();
   showToast('Signed out');
+}
+
+// ── POST-LOGIN ────────────────────────────────────────────────────────────────
+async function afterLogin() {
+  projectsData = await loadProjects();
+  if (currentUser.role === 'admin') {
+    renderAdminTable(projectsData);
+    showAdminView();
+  } else {
+    renderUserTable(projectsData);
+    showUserView(currentUser);
+  }
+}
+
+// ── ESCAPE HTML ───────────────────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
@@ -179,12 +681,17 @@ async function doSignOut() {
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
     const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
-    if (profile) { showAuthView(profile); return; }
+    if (profile) {
+      currentUser = profile;
+      setHeader(profile);
+      await afterLogin();
+      return;
+    }
   }
   showGuestView();
 })();
 
-// Close modal on backdrop click / Escape
+// Modal backdrop + Escape
 document.getElementById('loginModal').addEventListener('click', e => {
   if (e.target === document.getElementById('loginModal')) closeLoginModal();
 });
