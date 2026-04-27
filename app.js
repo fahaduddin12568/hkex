@@ -456,7 +456,7 @@ async function confirmReservation() {
   await renderUserTable(userId, tableId, true);
   showToast('Account reserved successfully', 'success');
 
-  // 2 — PDF download (client-side, always instant)
+  // 2 — PDF download (client-side, instant)
   generateReservationPDF(reserveTarget);
 
   // 3 — Email via Supabase Edge Function (non-blocking)
@@ -533,10 +533,13 @@ function generateReservationPDF(target) {
 async function sendReservationEmail(target) {
   if (!currentUser) return;
 
-  // Get the authenticated user's email from Supabase session
+  // Get the authenticated session to read email + JWT
   const { data: { session } } = await sb.auth.getSession();
   const toEmail = session?.user?.email || '';
-  if (!toEmail) { console.warn('No email on session — skipping email'); return; }
+  if (!toEmail) {
+    console.warn('No email on session — skipping email send');
+    return;
+  }
 
   const now = new Date().toLocaleString('en-GB', { dateStyle: 'long', timeStyle: 'short' });
 
@@ -553,9 +556,7 @@ async function sendReservationEmail(target) {
     reservationTime: now,
   };
 
-  // Supabase project URL is already in the client config — derive the function URL from it
-  const supabaseUrl = window._supabase.supabaseUrl;
-  const functionUrl = supabaseUrl + '/functions/v1/send-reservation-email';
+  const functionUrl = 'https://pwrrfsgnkxronosyyirn.supabase.co/functions/v1/send-reservation-email';
 
   try {
     const res  = await fetch(functionUrl, {
@@ -563,7 +564,7 @@ async function sendReservationEmail(target) {
       headers: {
         'Content-Type':  'application/json',
         'Authorization': 'Bearer ' + (session?.access_token || ''),
-        'apikey':        window._supabase.supabaseKey,
+        'apikey':        'sb_publishable_wF1sNNonwFYmm1SoXUuudA_Yz13a-v7',
       },
       body: JSON.stringify(payload),
     });
