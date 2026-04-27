@@ -444,16 +444,24 @@ function openReserveConfirm() {
 async function confirmReservation() {
   if (!reserveTarget) return;
   const { rowIdx, tableId, userId } = reserveTarget;
+
+  // 1 — Persist status change
   const data = await getUserData(userId);
   if (!data[rowIdx]) data[rowIdx] = [];
   data[rowIdx][STATUS_COL] = 'Reserved';
   await setUserData(userId, data);
+
   closeModal();
   closeReservePanel();
   await renderUserTable(userId, tableId, true);
   showToast('Account reserved successfully', 'success');
+
+  // 2 — PDF download (client-side, always instant)
   generateReservationPDF(reserveTarget);
+
+  // 3 — Email via Supabase Edge Function (non-blocking)
   sendReservationEmail(reserveTarget);
+
   reserveTarget = null;
 }
 
@@ -522,15 +530,54 @@ function generateReservationPDF(target) {
   }
 }
 
-function sendReservationEmail(target) {
+async function sendReservationEmail(target) {
   if (!currentUser) return;
-  const toEmail = currentUser.username || '';
-  const now     = new Date().toLocaleString('en-GB', { dateStyle: 'long', timeStyle: 'short' });
-  const subject = encodeURIComponent(`HKEX Account Reservation Confirmed – ${target.accId}`);
-  const body = encodeURIComponent(
-`Dear ${currentUser.name},\n\nYour account reservation has been confirmed.\n\n  Account ID:       ${target.accId}\n  Supplier:         ${target.suppli}\n  Account Price:    ${target.accPx}\n  Quantity (BTC):   ${target.qty}\n  Purchase Value:   ${target.purVal}\n  Status:           Reserved\n  Reservation Time: ${now}\n\nA PDF receipt has been downloaded to your device.\n\nKind regards,\nHKEX WorkSpace`
-  );
-  window.open(`mailto:${toEmail}?subject=${subject}&body=${body}`, '_blank');
+
+  // Get the authenticated user's email from Supabase session
+  const { data: { session } } = await sb.auth.getSession();
+  const toEmail = session?.user?.email || '';
+  if (!toEmail) { console.warn('No email on session — skipping email'); return; }
+
+  const now = new Date().toLocaleString('en-GB', { dateStyle: 'long', timeStyle: 'short' });
+
+  const payload = {
+    toEmail,
+    toName:          currentUser.name,
+    accId:           target.accId,
+    suppli:          target.suppli,
+    accPx:           target.accPx,
+    qty:             String(target.qty),
+    purVal:          target.purVal,
+    balance:         formatAmount(String(target.balance)),
+    reqFundingFmt:   target.reqFundingFmt,
+    reservationTime: now,
+  };
+
+  // Supabase project URL is already in the client config — derive the function URL from it
+  const supabaseUrl = window._supabase.supabaseUrl;
+  const functionUrl = supabaseUrl + '/functions/v1/send-reservation-email';
+
+  try {
+    const res  = await fetch(functionUrl, {
+      method:  'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': 'Bearer ' + (session?.access_token || ''),
+        'apikey':        window._supabase.supabaseKey,
+      },
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json();
+    if (res.ok) {
+      showToast('Confirmation email sent to ' + toEmail, 'success');
+    } else {
+      console.error('Email send failed:', json);
+      showToast('Reservation confirmed — email could not be sent');
+    }
+  } catch (err) {
+    console.error('Email function error:', err);
+    showToast('Reservation confirmed — email could not be sent');
+  }
 }
 
 // ─── INPUT HANDLERS ───────────────────────────────────────────────────────────
