@@ -131,15 +131,25 @@ const DEFAULT_PROJECTS = [
   { name:'Platinum', value:50000, period:9,  roi_pct:77, roi_usd:38500, final_equity:88500, status:'' },
 ];
 const _projectsCache = {};
+
 async function getUserProjectsData(userId) {
   if (_projectsCache[userId]) return JSON.parse(JSON.stringify(_projectsCache[userId]));
   const { data, error } = await sb.from('user_projects_data').select('data').eq('user_id', userId).single();
-  if (error || !data) { const def = JSON.parse(JSON.stringify(DEFAULT_PROJECTS)); _projectsCache[userId] = def; return JSON.parse(JSON.stringify(def)); }
-  _projectsCache[userId] = data.data; return JSON.parse(JSON.stringify(data.data));
+  if (error || !data) {
+    const def = JSON.parse(JSON.stringify(DEFAULT_PROJECTS));
+    _projectsCache[userId] = def;
+    return JSON.parse(JSON.stringify(def));
+  }
+  _projectsCache[userId] = data.data;
+  return JSON.parse(JSON.stringify(data.data));
 }
+
 async function setUserProjectsData(userId, rows) {
   _projectsCache[userId] = rows;
-  const { error } = await sb.from('user_projects_data').upsert({ user_id: userId, data: rows, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+  const { error } = await sb.from('user_projects_data').upsert(
+    { user_id: userId, data: rows, updated_at: new Date().toISOString() },
+    { onConflict: 'user_id' }
+  );
   if (error) console.error('setUserProjectsData:', error);
 }
 
@@ -579,7 +589,7 @@ async function sendReservationEmail(target) {
   };
   const functionUrl = 'https://pwrrfsgnkxronosyyirn.supabase.co/functions/v1/send-reservation-email';
   try {
-    const res  = await fetch(functionUrl, {
+    const res = await fetch(functionUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (session?.access_token || ''), 'apikey': 'sb_publishable_wF1sNNonwFYmm1SoXUuudA_Yz13a-v7' },
       body: JSON.stringify(payload),
