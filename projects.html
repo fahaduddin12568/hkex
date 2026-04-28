@@ -300,7 +300,7 @@
   <div class="page-header">
     <div>
       <div class="page-title" id="userWelcomeTitle">Projects</div>
-      <div class="page-subtitle">Available investment tiers — click any row to enquire</div>
+      <div class="page-subtitle">Available investment tiers — click <strong>Available</strong> to reserve</div>
     </div>
   </div>
   <div class="proj-table-wrap">
@@ -318,11 +318,11 @@
         </tr>
       </thead>
       <tbody id="userProjectsTbody">
-        <tr><td colspan="7" style="padding:32px;text-align:center;color:var(--text-muted);font-size:13px;">Loading…</td></tr>
+        <tr><td colspan="8" style="padding:32px;text-align:center;color:var(--text-muted);font-size:13px;">Loading…</td></tr>
       </tbody>
     </table>
     <div class="proj-table-actions">
-      <span class="proj-save-status">Contact your broker to invest in any of the tiers above.</span>
+      <span class="proj-save-status">Click any <strong>Available</strong> tier to reserve it.</span>
     </div>
   </div>
 </div>
@@ -364,7 +364,6 @@
             <thead>
               <tr>
                 <th class="th-name">Project Name</th>
-                <th>Trading Pair</th>
                 <th>Project Value</th>
                 <th>Trading Period</th>
                 <th>Guaranteed RoI, %</th>
@@ -458,6 +457,22 @@
   </div>
 </div>
 
+<!-- RESERVE CONFIRMATION MODAL -->
+<div class="modal-overlay" id="projReserveModal">
+  <div class="modal" style="max-width:440px;">
+    <h3 style="color:#003465;">Confirm Project Reservation</h3>
+    <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">Please review the project details before confirming.</p>
+    <div class="reserve-modal-details" id="projReserveModalDetails"></div>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:8px;line-height:1.5;">
+      Once confirmed, this project will be marked as <strong>Reserved</strong> and a PDF receipt will be generated.
+    </p>
+    <div class="modal-actions" style="margin-top:16px;">
+      <button class="btn btn-outline" onclick="closeProjModal()">Cancel</button>
+      <button class="btn btn-primary" style="background:#003465;" onclick="confirmProjReservation()">Confirm &amp; Reserve</button>
+    </div>
+  </div>
+</div>
+
 <footer class="site-footer">
   <span id="footerCopyright">&#169;2017-26 Hong Kong Exchanges and Clearing Limited. All rights reserved.</span>
 </footer>
@@ -503,10 +518,10 @@ function setHeader(user) {
 
 // ── SUPABASE DATA ─────────────────────────────────────────────────────────────
 const DEFAULT_PROJECTS = [
-  { name:'Bronze',   trading_pair:'BTC/USD', value:3500,  period:13, roi_pct:68, roi_usd:2380,  final_equity:5880  },
-  { name:'Silver',   trading_pair:'BTC/USD', value:10000, period:11, roi_pct:72, roi_usd:7200,  final_equity:17200 },
-  { name:'Gold',     trading_pair:'BTC/USD', value:25000, period:10, roi_pct:74, roi_usd:18500, final_equity:43500 },
-  { name:'Platinum', trading_pair:'BTC/USD', value:50000, period:9,  roi_pct:77, roi_usd:38500, final_equity:88500 },
+  { name:'Bronze',   value:3500,  period:13, roi_pct:68, roi_usd:2380,  final_equity:5880  },
+  { name:'Silver',   value:10000, period:11, roi_pct:72, roi_usd:7200,  final_equity:17200 },
+  { name:'Gold',     value:25000, period:10, roi_pct:74, roi_usd:18500, final_equity:43500 },
+  { name:'Platinum', value:50000, period:9,  roi_pct:77, roi_usd:38500, final_equity:88500 },
 ];
 
 const _projCache = {};
@@ -565,8 +580,12 @@ async function toggleVisibility(userId, field, btnEl) {
 function renderUserTable(rows) {
   const tbody = document.getElementById('userProjectsTbody');
   if (!tbody) return;
-  tbody.innerHTML = rows.map(p => {
+  tbody.innerHTML = rows.map((p, i) => {
     const tc = getTierClass(p.name);
+    const st = p.status || '';
+    const statusCell = st === 'Reserved'
+      ? `<span class="proj-status-pill proj-status-reserved">Reserved</span>`
+      : `<span class="proj-status-pill proj-status-available" onclick="openProjReservePanel(this,${i})" title="Click to reserve">Available</span>`;
     return `
     <tr class="tier-${tc}">
       <td class="proj-cell proj-cell-name">
@@ -580,6 +599,7 @@ function renderUserTable(rows) {
       <td class="proj-cell proj-cell-center"><span class="proj-roi-pct">${escHtml(String(p.roi_pct))}%</span></td>
       <td class="proj-cell">${amountCell(p.roi_usd)}</td>
       <td class="proj-cell">${amountCell(p.final_equity, 'proj-final')}</td>
+      <td class="proj-cell proj-cell-center">${statusCell}</td>
     </tr>`;
   }).join('');
 }
@@ -599,11 +619,6 @@ function renderAdminTable(rows) {
         <input class="proj-input input-name" data-row="${i}" data-field="name"
           value="${escHtml(p.name)}"
           oninput="onAdminInput(this)">
-      </td>
-      <td style="padding:4px 8px;min-width:100px;">
-        <input class="proj-input" data-row="${i}" data-field="trading_pair"
-          value="${escHtml(p.trading_pair||'BTC/USD')}"
-          oninput="onAdminInput(this)" style="text-align:center;font-family:'DM Mono',monospace;font-weight:600;">
       </td>
       <td style="padding:4px 8px;min-width:120px;">
         <div style="display:flex;align-items:center;padding:0 4px;">
@@ -671,8 +686,6 @@ function onAdminInput(el) {
     // update tier row class live
     const tr = el.closest('tr');
     tr.className = tr.className.replace(/tier-\w+/, 'tier-' + getTierClass(raw));
-  } else if (field === 'trading_pair') {
-    projectsData[i].trading_pair = raw;
   } else if (field === 'value') {
     projectsData[i].value = parseFloat(raw.replace(/[^0-9.]/g,'')) || 0;
   } else if (field === 'period') {
@@ -1005,7 +1018,7 @@ function generateProjPDF(target) {
     });
     doc.setFillColor(0,52,101); doc.rect(0,780,595,62,'F');
     doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont('helvetica','normal');
-    doc.text('HKEX Hub \u00a9 ' + now.getFullYear(), 40, 828);
+    doc.text('HKEX Hub © ' + now.getFullYear(), 40, 828);
     doc.save('HKEX_Project_' + p.name + '_' + now.toISOString().slice(0,10) + '.pdf');
   } catch(e) { console.warn('PDF failed:', e); showToast('Reservation confirmed (PDF unavailable)'); }
 }
@@ -1039,8 +1052,8 @@ async function sendProjEmail(target) {
     });
     const json = await res.json();
     if (res.ok) showToast('Confirmation email sent to ' + toEmail, 'success');
-    else { console.error('Email failed:', json); showToast('Reservation confirmed \u2014 email could not be sent'); }
-  } catch(err) { console.error('Email error:', err); showToast('Reservation confirmed \u2014 email could not be sent'); }
+    else { console.error('Email failed:', json); showToast('Reservation confirmed — email could not be sent'); }
+  } catch(err) { console.error('Email error:', err); showToast('Reservation confirmed — email could not be sent'); }
 }
 
 // ── ESCAPE HTML ───────────────────────────────────────────────────────────────
@@ -1067,7 +1080,12 @@ function escHtml(s) {
 document.getElementById('loginModal').addEventListener('click', e => {
   if (e.target === document.getElementById('loginModal')) closeLoginModal();
 });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLoginModal(); });
+document.getElementById('projReserveModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('projReserveModal')) closeProjModal();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeLoginModal(); closeProjModal(); }
+});
 
 // BTC price ticker
 async function fetchBtcPrice() {
