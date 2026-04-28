@@ -15,12 +15,12 @@
 <header>
   <div class="header-left">
     <div class="logo">
-      <a href="home.html" style="display:flex;align-items:center;text-decoration:none;">
+      <a href="index.html" style="display:flex;align-items:center;text-decoration:none;">
         <img src="logo.png" alt="HKEX" class="header-logo">
       </a>
     </div>
     <nav class="main-nav">
-      <a href="index.html" class="nav-link">Buy Bitcoin</a>
+      <a href="btc.html" class="nav-link">Buy Bitcoin</a>
       <a href="projects.html" class="nav-link">Projects</a>
       <a href="staking.html" class="nav-link active">OTC</a>
     </nav>
@@ -60,7 +60,7 @@
     </div>
   </div>
 
-  <!-- Shown when logged in -->
+  <!-- Shown when logged in and visibility_otc = true -->
   <div id="authView" style="display:none;">
     <div class="empty-state">
       <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -69,6 +69,17 @@
       </svg>
       <h2>HKEX:OTC</h2>
       <p>No offers available at the moment. Please come check later.</p>
+    </div>
+  </div>
+  <!-- Shown when visibility_otc = false -->
+  <div id="otcBlocked" style="display:none;">
+    <div class="empty-state">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 6v6l4 2"/>
+      </svg>
+      <h2>HKEX:OTC</h2>
+      <p>No available OTC offers for your account type at the moment. Please check back later or contact your broker.</p>
     </div>
   </div>
 </div>
@@ -120,7 +131,9 @@ function showAuthView(user) {
   currentUser = user;
   setHeader(user);
   document.getElementById('guestView').style.display = 'none';
-  document.getElementById('authView').style.display = '';
+  const otcVisible = user.visibility_otc === true;
+  document.getElementById('authView').style.display  = otcVisible ? '' : 'none';
+  document.getElementById('otcBlocked').style.display = otcVisible ? 'none' : '';
   document.getElementById('pageSubtitle').textContent = 'Over-the-counter block trades';
 }
 

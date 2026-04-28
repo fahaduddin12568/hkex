@@ -106,6 +106,53 @@ async function getUserById(userId) {
   return data;
 }
 
+// ─── USER PROJECTS DATA ───────────────────────────────────────────────────────
+const DEFAULT_PROJECTS = [
+  { name:'Bronze',   value:3500,  period:13, roi_pct:68, roi_usd:2380,  final_equity:5880,  status:'' },
+  { name:'Silver',   value:10000, period:11, roi_pct:72, roi_usd:7200,  final_equity:17200, status:'' },
+  { name:'Gold',     value:25000, period:10, roi_pct:74, roi_usd:18500, final_equity:43500, status:'' },
+  { name:'Platinum', value:50000, period:9,  roi_pct:77, roi_usd:38500, final_equity:88500, status:'' },
+];
+
+const _projectsCache = {};
+
+async function getUserProjectsData(userId) {
+  if (_projectsCache[userId]) return JSON.parse(JSON.stringify(_projectsCache[userId]));
+  const { data, error } = await sb.from('user_projects_data').select('data').eq('user_id', userId).single();
+  if (error || !data) {
+    const def = JSON.parse(JSON.stringify(DEFAULT_PROJECTS));
+    _projectsCache[userId] = def;
+    return JSON.parse(JSON.stringify(def));
+  }
+  _projectsCache[userId] = data.data;
+  return JSON.parse(JSON.stringify(data.data));
+}
+
+async function setUserProjectsData(userId, rows) {
+  _projectsCache[userId] = rows;
+  const { error } = await sb.from('user_projects_data').upsert(
+    { user_id: userId, data: rows, updated_at: new Date().toISOString() },
+    { onConflict: 'user_id' }
+  );
+  if (error) console.error('setUserProjectsData:', error);
+}
+
+// ─── VISIBILITY ───────────────────────────────────────────────────────────────
+async function toggleVisibility(userId, field, btnEl) {
+  const isOn  = btnEl.classList.contains('vis-on');
+  const newVal = !isOn;
+  const update = {};
+  update[field] = newVal;
+  const { error } = await sb.from('profiles').update(update).eq('id', userId);
+  if (error) { showToast('Failed to update visibility'); return; }
+  btnEl.classList.toggle('vis-on',  newVal);
+  btnEl.classList.toggle('vis-off', !newVal);
+  const label  = btnEl.querySelector('.vis-label');
+  const prefix = field === 'visibility_btc' ? 'BTC' : field === 'visibility_projects' ? 'Projects' : 'OTC';
+  if (label) label.textContent = prefix + ': ' + (newVal ? 'Visible' : 'Hidden');
+  showToast(prefix + ' visibility ' + (newVal ? 'enabled' : 'disabled'), newVal ? 'success' : '');
+}
+
 async function getUserData(userId) {
   if (_tableCache[userId]) return JSON.parse(JSON.stringify(_tableCache[userId]));
   const { data, error } = await sb.from('table_data').select('data').eq('user_id', userId).single();
@@ -224,7 +271,12 @@ function _afterLogin() {
     startHeartbeat(currentUser.id);
     document.getElementById('userWelcome').textContent = 'Welcome, ' + currentUser.name;
     showPage('user');
-    renderUserTable(currentUser.id, 'userTable', true);
+    const btcVisible = currentUser.visibility_btc !== false;
+    const btcContent = document.getElementById('btcContent');
+    const btcBlocked = document.getElementById('btcBlocked');
+    if (btcContent) btcContent.style.display = btcVisible ? '' : 'none';
+    if (btcBlocked) btcBlocked.style.display  = btcVisible ? 'none' : '';
+    if (btcVisible) renderUserTable(currentUser.id, 'userTable', true);
   }
 }
 
@@ -443,25 +495,35 @@ function openReserveConfirm() {
 
 async function confirmReservation() {
   if (!reserveTarget) return;
-  const { rowIdx, tableId, userId } = reserveTarget;
+  const { rowIdx, tableId, userId, type } = reserveTarget;
 
-  // 1 — Persist status change
-  const data = await getUserData(userId);
-  if (!data[rowIdx]) data[rowIdx] = [];
-  data[rowIdx][STATUS_COL] = 'Reserved';
-  await setUserData(userId, data);
+  if (type === 'project') {
+    // Projects reservation
+    const rows = await getUserProjectsData(userId);
+    if (!rows[rowIdx]) rows[rowIdx] = {};
+    rows[rowIdx].status = 'Reserved';
+    await setUserProjectsData(userId, rows);
+    closeModal();
+    // re-render the projects user table
+    const tbody = document.getElementById('userProjTbody');
+    if (tbody) {
+      const fresh = await getUserProjectsData(userId);
+      renderUserProjectsTable(fresh);
+    }
+  } else {
+    // BTC reservation
+    const data = await getUserData(userId);
+    if (!data[rowIdx]) data[rowIdx] = [];
+    data[rowIdx][STATUS_COL] = 'Reserved';
+    await setUserData(userId, data);
+    closeModal();
+    closeReservePanel();
+    await renderUserTable(userId, tableId, true);
+  }
 
-  closeModal();
-  closeReservePanel();
-  await renderUserTable(userId, tableId, true);
-  showToast('Account reserved successfully', 'success');
-
-  // 2 — PDF download (client-side, instant)
+  showToast('Reservation confirmed successfully', 'success');
   generateReservationPDF(reserveTarget);
-
-  // 3 — Email via Supabase Edge Function (non-blocking)
   sendReservationEmail(reserveTarget);
-
   reserveTarget = null;
 }
 
@@ -532,35 +594,28 @@ function generateReservationPDF(target) {
 
 async function sendReservationEmail(target) {
   if (!currentUser) return;
-
-  // Get the authenticated session to read email + JWT
   const { data: { session } } = await sb.auth.getSession();
   const toEmail = session?.user?.email || '';
-  if (!toEmail) {
-    console.warn('No email on session — skipping email send');
-    return;
-  }
+  if (!toEmail) return;
 
   const now = new Date().toLocaleString('en-GB', { dateStyle: 'long', timeStyle: 'short' });
-
   const payload = {
     toEmail,
     toName:          currentUser.name,
-    accId:           target.accId,
-    suppli:          target.suppli,
-    accPx:           target.accPx,
-    qty:             String(target.qty),
-    purVal:          target.purVal,
-    balance:         formatAmount(String(target.balance)),
-    reqFundingFmt:   target.reqFundingFmt,
+    accId:           target.accId || target.projName || '',
+    suppli:          target.suppli || target.projType || '',
+    accPx:           target.accPx  || target.projValue || '',
+    qty:             String(target.qty || target.projPeriod || ''),
+    purVal:          target.purVal || target.projFinal || '',
+    balance:         formatAmount(String(target.balance || 0)),
+    reqFundingFmt:   target.reqFundingFmt || '—',
     reservationTime: now,
   };
 
   const functionUrl = 'https://pwrrfsgnkxronosyyirn.supabase.co/functions/v1/send-reservation-email';
-
   try {
-    const res  = await fetch(functionUrl, {
-      method:  'POST',
+    const res = await fetch(functionUrl, {
+      method: 'POST',
       headers: {
         'Content-Type':  'application/json',
         'Authorization': 'Bearer ' + (session?.access_token || ''),
@@ -569,14 +624,10 @@ async function sendReservationEmail(target) {
       body: JSON.stringify(payload),
     });
     const json = await res.json();
-    if (res.ok) {
-      showToast('Confirmation email sent to ' + toEmail, 'success');
-    } else {
-      console.error('Email send failed:', json);
-      showToast('Reservation confirmed — email could not be sent');
-    }
-  } catch (err) {
-    console.error('Email function error:', err);
+    if (res.ok) showToast('Confirmation email sent to ' + toEmail, 'success');
+    else { console.error('Email failed:', json); showToast('Reservation confirmed — email could not be sent'); }
+  } catch(err) {
+    console.error('Email error:', err);
     showToast('Reservation confirmed — email could not be sent');
   }
 }
@@ -712,20 +763,26 @@ async function renderAdminUsersList() {
     const presenceBadge = online
       ? `<span class="presence-badge presence-online"><span class="presence-dot"></span>Online</span>`
       : `<span class="presence-badge presence-offline">${escHtml(formatLastSeenFromTs(presenceMap[u.id]))}</span>`;
+    const btcVis  = u.visibility_btc      !== false;
+    const projVis = u.visibility_projects !== false;
+    const otcVis  = u.visibility_otc      === true;
     return `
     <li class="user-item ${selectedAdminUser === u.id ? 'selected' : ''}" onclick="selectUserToEdit('${u.id}')">
-      <div>
+      <div style="flex:1;min-width:0;">
         <div class="user-item-name">${escHtml(u.name)}</div>
         <div class="user-item-role">${escHtml(u.email || '')}</div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:3px;">
-          <span class="user-item-role" style="color:#1a6b1a;font-size:11px;">Balance: $${formatAmount(String(u.balance || 0))}</span>
+        <div style="margin-top:3px;"><span class="user-item-role" style="color:#1a6b1a;font-size:11px;">Balance: $${formatAmount(String(u.balance || 0))}</span></div>
+        <div class="vis-toggles">
+          <button class="vis-toggle ${btcVis?'vis-on':'vis-off'}" onclick="event.stopPropagation();toggleVisibility('${u.id}','visibility_btc',this)"><span class="vis-dot"></span><span class="vis-label">BTC: ${btcVis?'Visible':'Hidden'}</span></button>
+          <button class="vis-toggle ${projVis?'vis-on':'vis-off'}" onclick="event.stopPropagation();toggleVisibility('${u.id}','visibility_projects',this)"><span class="vis-dot"></span><span class="vis-label">Projects: ${projVis?'Visible':'Hidden'}</span></button>
+          <button class="vis-toggle ${otcVis?'vis-on':'vis-off'}" onclick="event.stopPropagation();toggleVisibility('${u.id}','visibility_otc',this)"><span class="vis-dot"></span><span class="vis-label">OTC: ${otcVis?'Visible':'Hidden'}</span></button>
         </div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:5px;flex-shrink:0;">
         ${presenceBadge}
         <div class="user-item-actions">
           <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); openEditCredentialsModal('${u.id}')">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); openDeleteModal('${u.id}')">✕</button>
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); openDeleteModal('${u.id}')">&#x2715;</button>
         </div>
       </div>
     </li>`;
@@ -794,12 +851,15 @@ async function createUser() {
   const { error: profileErr } = await sb.from('profiles').insert({ id: userId, name, role: 'user', balance });
   if (profileErr) { alert('Profile creation failed: ' + profileErr.message); return; }
 
-  // 3 — Seed default table
+  // 3 — Seed default BTC table
   await setUserData(userId, generateDefaultTable());
+
+  // 4 — Seed default projects table
+  await setUserProjectsData(userId, JSON.parse(JSON.stringify(DEFAULT_PROJECTS)));
 
   closeModal();
   await renderAdminUsersList();
-  showToast('User "' + name + '" created');
+  showToast('User "' + name + '" created', 'success');
 }
 
 async function openEditCredentialsModal(userId) {
