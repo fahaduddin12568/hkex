@@ -106,7 +106,7 @@ async function getUserById(userId) {
   return data;
 }
 
-// ─── VISIBILITY TOGGLE ────────────────────────────────────────────────────────
+// ─── VISIBILITY TOGGLE ───────────────────────────────────────────────────────
 async function toggleVisibility(userId, field, btnEl) {
   const isOn   = btnEl.classList.contains('vis-on');
   const newVal = !isOn;
@@ -117,7 +117,8 @@ async function toggleVisibility(userId, field, btnEl) {
   btnEl.classList.toggle('vis-on',  newVal);
   btnEl.classList.toggle('vis-off', !newVal);
   const label  = btnEl.querySelector('.vis-label');
-  const prefix = field === 'visibility_btc' ? 'BTC' : field === 'visibility_projects' ? 'Projects' : 'OTC';
+  const prefix = field === 'visibility_btc' ? 'BTC'
+               : field === 'visibility_projects' ? 'Projects' : 'OTC';
   if (label) label.textContent = prefix + ': ' + (newVal ? 'Visible' : 'Hidden');
   showToast(prefix + ' visibility ' + (newVal ? 'enabled' : 'disabled'), newVal ? 'success' : '');
 }
@@ -700,7 +701,10 @@ async function renderAdminUsersList() {
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-start;gap:5px;flex-shrink:0;padding-top:2px;">
         ${presenceBadge}
-        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();openDeleteModal('${u.id}')">&#x2715;</button>
+        <div class="user-item-actions">
+          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openEditCredentialsModal('${u.id}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();openDeleteModal('${u.id}')">&#x2715;</button>
+        </div>
       </div>
     </li>`;
   }).join('');

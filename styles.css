@@ -967,7 +967,7 @@
     .main-hero h1 { font-size: 20px; }
     #splash-logo  { width: 200px; }
   }
-/* ── VISIBILITY TOGGLES ──────────────────────────────────────────────────────*/
+/* ── VISIBILITY TOGGLES ─────────────────────────────────────────────────────*/
 .vis-toggles {
   display: flex;
   gap: 5px;
@@ -988,10 +988,11 @@
   transition: all 0.15s;
   user-select: none;
   white-space: nowrap;
+  background: none;
 }
-.vis-toggle.vis-on  { background:#e6f9e6; color:#1a6b1a; border-color:#b6ddb6; }
-.vis-toggle.vis-off { background:#fdeef0; color:#c41e35; border-color:#f5b0bb; }
+.vis-toggle.vis-on  { background: #e6f9e6; color: #1a6b1a; border-color: #b6ddb6; }
+.vis-toggle.vis-off { background: #fdeef0; color: #c41e35; border-color: #f5b0bb; }
 .vis-toggle:hover   { filter: brightness(0.93); }
-.vis-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
-.vis-on  .vis-dot   { background:#4caf50; }
-.vis-off .vis-dot   { background:#e53935; }
+.vis-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.vis-on  .vis-dot { background: #4caf50; }
+.vis-off .vis-dot { background: #e53935; }
