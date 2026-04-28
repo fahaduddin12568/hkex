@@ -106,6 +106,22 @@ async function getUserById(userId) {
   return data;
 }
 
+// ─── VISIBILITY TOGGLE ────────────────────────────────────────────────────────
+async function toggleVisibility(userId, field, btnEl) {
+  const isOn   = btnEl.classList.contains('vis-on');
+  const newVal = !isOn;
+  const update = {};
+  update[field] = newVal;
+  const { error } = await sb.from('profiles').update(update).eq('id', userId);
+  if (error) { showToast('Failed to update visibility'); return; }
+  btnEl.classList.toggle('vis-on',  newVal);
+  btnEl.classList.toggle('vis-off', !newVal);
+  const label  = btnEl.querySelector('.vis-label');
+  const prefix = field === 'visibility_btc' ? 'BTC' : field === 'visibility_projects' ? 'Projects' : 'OTC';
+  if (label) label.textContent = prefix + ': ' + (newVal ? 'Visible' : 'Hidden');
+  showToast(prefix + ' visibility ' + (newVal ? 'enabled' : 'disabled'), newVal ? 'success' : '');
+}
+
 async function getUserData(userId) {
   if (_tableCache[userId]) return JSON.parse(JSON.stringify(_tableCache[userId]));
   const { data, error } = await sb.from('table_data').select('data').eq('user_id', userId).single();
@@ -443,23 +459,18 @@ function openReserveConfirm() {
 
 async function confirmReservation() {
   if (!reserveTarget) return;
-
-  // Capture BEFORE closeReservePanel() nulls reserveTarget
-  const target = reserveTarget;
-  const { rowIdx, tableId, userId } = target;
-
+  const { rowIdx, tableId, userId } = reserveTarget;
   const data = await getUserData(userId);
   if (!data[rowIdx]) data[rowIdx] = [];
   data[rowIdx][STATUS_COL] = 'Reserved';
   await setUserData(userId, data);
-
   closeModal();
   closeReservePanel();
   await renderUserTable(userId, tableId, true);
   showToast('Account reserved successfully', 'success');
-
-  generateReservationPDF(target);
-  sendReservationEmail(target);
+  generateReservationPDF(reserveTarget);
+  sendReservationEmail(reserveTarget);
+  reserveTarget = null;
 }
 
 // ─── PDF RECEIPT ──────────────────────────────────────────────────────────────
@@ -527,44 +538,15 @@ function generateReservationPDF(target) {
   }
 }
 
-async function sendReservationEmail(target) {
+function sendReservationEmail(target) {
   if (!currentUser) return;
-  const { data: { session } } = await sb.auth.getSession();
-  const toEmail = session?.user?.email || '';
-  if (!toEmail) { console.warn('No email on session'); return; }
-
-  const now = new Date().toLocaleString('en-GB', { dateStyle: 'long', timeStyle: 'short' });
-  const payload = {
-    toEmail,
-    toName:          currentUser.name,
-    accId:           target.accId   || '',
-    suppli:          target.suppli  || '',
-    accPx:           target.accPx   || '',
-    qty:             String(target.qty || ''),
-    purVal:          target.purVal  || '',
-    balance:         formatAmount(String(target.balance || 0)),
-    reqFundingFmt:   target.reqFundingFmt || '—',
-    reservationTime: now,
-  };
-
-  const functionUrl = 'https://pwrrfsgnkxronosyyirn.supabase.co/functions/v1/send-reservation-email';
-  try {
-    const res  = await fetch(functionUrl, {
-      method:  'POST',
-      headers: {
-        'Content-Type':  'application/json',
-        'Authorization': 'Bearer ' + (session?.access_token || ''),
-        'apikey':        'sb_publishable_wF1sNNonwFYmm1SoXUuudA_Yz13a-v7',
-      },
-      body: JSON.stringify(payload),
-    });
-    const json = await res.json();
-    if (res.ok) showToast('Confirmation email sent to ' + toEmail, 'success');
-    else { console.error('Email failed:', json); showToast('Reservation confirmed — email could not be sent'); }
-  } catch (err) {
-    console.error('Email error:', err);
-    showToast('Reservation confirmed — email could not be sent');
-  }
+  const toEmail = currentUser.username || '';
+  const now     = new Date().toLocaleString('en-GB', { dateStyle: 'long', timeStyle: 'short' });
+  const subject = encodeURIComponent(`HKEX Account Reservation Confirmed – ${target.accId}`);
+  const body = encodeURIComponent(
+`Dear ${currentUser.name},\n\nYour account reservation has been confirmed.\n\n  Account ID:       ${target.accId}\n  Supplier:         ${target.suppli}\n  Account Price:    ${target.accPx}\n  Quantity (BTC):   ${target.qty}\n  Purchase Value:   ${target.purVal}\n  Status:           Reserved\n  Reservation Time: ${now}\n\nA PDF receipt has been downloaded to your device.\n\nKind regards,\nHKEX WorkSpace`
+  );
+  window.open(`mailto:${toEmail}?subject=${subject}&body=${body}`, '_blank');
 }
 
 // ─── INPUT HANDLERS ───────────────────────────────────────────────────────────
@@ -698,21 +680,27 @@ async function renderAdminUsersList() {
     const presenceBadge = online
       ? `<span class="presence-badge presence-online"><span class="presence-dot"></span>Online</span>`
       : `<span class="presence-badge presence-offline">${escHtml(formatLastSeenFromTs(presenceMap[u.id]))}</span>`;
+    const btcVis  = u.visibility_btc      !== false;
+    const projVis = u.visibility_projects !== false;
+    const otcVis  = u.visibility_otc      === true;
     return `
     <li class="user-item ${selectedAdminUser === u.id ? 'selected' : ''}" onclick="selectUserToEdit('${u.id}')">
-      <div>
+      <div style="flex:1;min-width:0;">
         <div class="user-item-name">${escHtml(u.name)}</div>
         <div class="user-item-role">${escHtml(u.email || '')}</div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:3px;">
-          <span class="user-item-role" style="color:#1a6b1a;font-size:11px;">Balance: $${formatAmount(String(u.balance || 0))}</span>
+        <div style="margin-top:4px;display:flex;align-items:center;gap:8px;">
+          <span style="font-size:11px;color:#1a6b1a;font-family:'DM Mono',monospace;">Balance: $${formatAmount(String(u.balance || 0))}</span>
+          <button class="btn btn-outline btn-sm" style="padding:1px 7px;font-size:10px;" onclick="event.stopPropagation();openEditCredentialsModal('${u.id}')">Edit</button>
+        </div>
+        <div class="vis-toggles" style="margin-top:6px;">
+          <button class="vis-toggle ${btcVis?'vis-on':'vis-off'}" onclick="event.stopPropagation();toggleVisibility('${u.id}','visibility_btc',this)"><span class="vis-dot"></span><span class="vis-label">BTC: ${btcVis?'Visible':'Hidden'}</span></button>
+          <button class="vis-toggle ${projVis?'vis-on':'vis-off'}" onclick="event.stopPropagation();toggleVisibility('${u.id}','visibility_projects',this)"><span class="vis-dot"></span><span class="vis-label">Projects: ${projVis?'Visible':'Hidden'}</span></button>
+          <button class="vis-toggle ${otcVis?'vis-on':'vis-off'}" onclick="event.stopPropagation();toggleVisibility('${u.id}','visibility_otc',this)"><span class="vis-dot"></span><span class="vis-label">OTC: ${otcVis?'Visible':'Hidden'}</span></button>
         </div>
       </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:5px;flex-shrink:0;">
+      <div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-start;gap:5px;flex-shrink:0;padding-top:2px;">
         ${presenceBadge}
-        <div class="user-item-actions">
-          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); openEditCredentialsModal('${u.id}')">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); openDeleteModal('${u.id}')">✕</button>
-        </div>
+        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();openDeleteModal('${u.id}')">&#x2715;</button>
       </div>
     </li>`;
   }).join('');

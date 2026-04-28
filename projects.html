@@ -9,139 +9,327 @@
 <script src="supabase-config.js"></script>
 <link rel="stylesheet" href="styles.css">
 <style>
-.proj-table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow); }
-.proj-table { width:100%; border-collapse:collapse; font-size:13px; }
-.proj-table th { background:var(--accent); color:rgba(255,255,255,0.9); padding:12px 16px; text-align:center; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; border-right:1px solid rgba(255,255,255,0.1); white-space:nowrap; }
-.proj-table th:first-child { text-align:left; }
-.proj-table th:last-child  { border-right:none; }
-.proj-table td { padding:0; border-right:1px solid var(--border); border-bottom:1px solid var(--border); }
-.proj-table td:last-child { border-right:none; }
-.proj-table tr:last-child td { border-bottom:none; }
+/* ── PROJECTS TABLE EXTRAS ───────────────────────────────────────────────────*/
+.proj-table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
 
-.tier-bronze   td { background:#fffbf5; } .tier-bronze:hover   td { background:#fff3e0; }
-.tier-silver   td { background:#f7f9fc; } .tier-silver:hover   td { background:#eef4fb; }
-.tier-gold     td { background:#fffef0; } .tier-gold:hover     td { background:#fffbd0; }
-.tier-platinum td { background:#f5f0ff; } .tier-platinum:hover td { background:#ede8ff; }
+.proj-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
 
-.tier-pill { display:inline-flex; align-items:center; gap:7px; padding:5px 13px 5px 9px; border-radius:20px; font-size:13px; font-weight:600; white-space:nowrap; }
-.tier-pill-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-.pill-bronze   { background:#fef0e0; color:#8a4800; border:1.5px solid #f0c080; } .pill-bronze .tier-pill-dot   { background:#c87020; }
-.pill-silver   { background:#f0f4fa; color:#3a4a6a; border:1.5px solid #b0bcd8; } .pill-silver .tier-pill-dot   { background:#7090b8; }
-.pill-gold     { background:#fffacc; color:#7a5c00; border:1.5px solid #e8d040; } .pill-gold .tier-pill-dot     { background:#c89800; }
-.pill-platinum { background:#ede8ff; color:#4a2890; border:1.5px solid #b09ae0; } .pill-platinum .tier-pill-dot { background:#7050c0; }
+.proj-table th {
+  background: var(--accent);
+  color: rgba(255,255,255,0.9);
+  padding: 12px 18px;
+  text-align: center;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  white-space: nowrap;
+}
+.proj-table th:last-child { border-right: none; }
+.proj-table th.th-name { text-align: left; }
 
-.proj-ro { padding:12px 16px; font-family:'DM Mono',monospace; font-size:13px; text-align:right; display:block; }
-.proj-ro-center { text-align:center; }
-.proj-ro-name   { text-align:left; padding:8px 12px; }
-.proj-amt { display:inline-flex; align-items:baseline; gap:2px; justify-content:flex-end; width:100%; }
-.proj-dollar { font-size:11px; color:var(--text-muted); font-family:'DM Mono',monospace; user-select:none; }
-.proj-roi-pct { font-weight:600; color:#1a6b1a; }
-.proj-final { font-weight:700; color:var(--accent); }
+.proj-table td {
+  padding: 0;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.proj-table td:last-child { border-right: none; }
+.proj-table tr:last-child td { border-bottom: none; }
 
-/* Status pill for projects */
-.proj-status-pill { display:inline-block; padding:3px 12px; border-radius:20px; font-size:12px; font-weight:600; text-align:center; }
-.proj-status-available  { background:#e6f9e6; color:#1a6b1a; border:1.5px solid #b6ddb6; cursor:pointer; transition:box-shadow 0.15s,transform 0.1s; }
-.proj-status-available:hover { box-shadow:0 0 0 3px rgba(26,107,26,0.18); transform:scale(1.04); }
-.proj-status-reserved   { background:#fff3e0; color:#8a4800; border:1.5px solid #f0c080; }
-.proj-status-empty      { background:var(--cell-bg); color:var(--text-muted); border:1.5px solid var(--border); }
+/* Tier colour bands */
+.proj-table tr.tier-bronze td { background: #fffbf5; }
+.proj-table tr.tier-silver td { background: #f7f9fc; }
+.proj-table tr.tier-gold   td { background: #fffef0; }
+.proj-table tr.tier-platinum td { background: #f5f0ff; }
 
-.proj-input { width:100%; padding:11px 14px; border:none; background:transparent; font-family:'DM Mono',monospace; font-size:13px; color:var(--text); outline:none; text-align:right; transition:background 0.1s; }
-.proj-input:focus { background:#eef4fb; box-shadow:inset 0 0 0 2px var(--accent); }
-.proj-input.inp-name { text-align:left; font-family:'DM Sans',sans-serif; font-weight:600; }
-.proj-input.inp-roi  { color:#1a6b1a; font-weight:600; text-align:center; }
-.proj-input.inp-derived { color:var(--text-muted); background:var(--cell-bg); cursor:not-allowed; }
+.proj-table tr.tier-bronze:hover td  { background: #fff3e0; }
+.proj-table tr.tier-silver:hover td  { background: #eef4fb; }
+.proj-table tr.tier-gold:hover td    { background: #fffbd0; }
+.proj-table tr.tier-platinum:hover td{ background: #ede8ff; }
 
-.proj-actions { display:flex; align-items:center; justify-content:space-between; padding:13px 20px; border-top:1px solid var(--border); background:var(--cell-bg); gap:10px; flex-wrap:wrap; }
-.proj-save-status { font-size:12px; color:var(--text-muted); font-family:'DM Mono',monospace; }
-.proj-save-status.saved { color:var(--accent); }
+/* Name cell — pill badge */
+.tier-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px 6px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.tier-pill-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
 
-/* Admin two-column layout */
-.proj-admin-wrap { display:grid; grid-template-columns:280px 1fr; gap:24px; align-items:start; }
-.proj-edit-panel { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow); }
-.proj-edit-empty { display:flex; align-items:center; justify-content:center; min-height:260px; color:var(--text-muted); font-size:14px; flex-direction:column; gap:8px; }
-.proj-edit-empty svg { opacity:0.3; }
+.pill-bronze   { background: #fef0e0; color: #8a4800; border: 1.5px solid #f0c080; }
+.pill-bronze .tier-pill-dot { background: #c87020; }
+.pill-silver   { background: #f0f4fa; color: #3a4a6a; border: 1.5px solid #b0bcd8; }
+.pill-silver .tier-pill-dot { background: #7090b8; }
+.pill-gold     { background: #fffacc; color: #7a5c00; border: 1.5px solid #e8d040; }
+.pill-gold .tier-pill-dot   { background: #c89800; }
+.pill-platinum { background: #ede8ff; color: #4a2890; border: 1.5px solid #b09ae0; }
+.pill-platinum .tier-pill-dot{ background: #7050c0; }
 
-/* Reserve panel (projects inline) */
-.proj-reserve-row td { padding:0 !important; border-bottom:2px solid #003465 !important; }
-.proj-reserve-panel { background:linear-gradient(135deg,#f0faf0 0%,#e8f4ff 100%); border-top:1.5px solid #b6ddb6; padding:14px 20px; display:flex; align-items:center; gap:18px; flex-wrap:wrap; animation:slidePanelIn 0.18s ease; }
+/* Read-only cells */
+.proj-cell {
+  padding: 13px 18px;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  text-align: right;
+}
+.proj-cell-center { text-align: center; }
+.proj-cell-name   { text-align: left; padding: 8px 14px; }
 
-@media (max-width:900px) { .proj-admin-wrap { grid-template-columns:1fr; } }
-@media (max-width:768px) { .proj-table-wrap { overflow-x:auto; } .proj-table { min-width:640px; } }
+/* Dollar sign prefix for amount cells */
+.proj-amount {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  justify-content: flex-end;
+  width: 100%;
+}
+.proj-dollar {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: 'DM Mono', monospace;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* ROI % highlight */
+.proj-roi-pct {
+  font-weight: 600;
+  color: #1a6b1a;
+}
+
+/* Admin editable cell inputs — match BTC table feel */
+.proj-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: none;
+  background: transparent;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  text-align: right;
+  transition: background 0.1s;
+}
+.proj-input:focus {
+  background: #eef4fb;
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+.proj-input.input-name {
+  text-align: left;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+}
+.proj-input.input-roi-pct {
+  color: #1a6b1a;
+  font-weight: 600;
+}
+/* auto-calc cells: slightly dimmed to show they're derived */
+.proj-input.input-derived {
+  color: var(--text-muted);
+  background: var(--cell-bg);
+  cursor: not-allowed;
+}
+
+/* Final equity — accent colour */
+.proj-final {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.proj-table-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--cell-bg);
+  gap: 10px;
+}
+
+.proj-save-status {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: 'DM Mono', monospace;
+}
+.proj-save-status.saved { color: var(--accent); }
+
+/* Admin panel layout mirrors BTC page */
+.proj-admin-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+}
+
+.proj-info-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px 20px;
+  box-shadow: var(--shadow);
+  height: fit-content;
+}
+.proj-info-card h3 {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  font-family: 'DM Mono', monospace;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.proj-info-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+}
+.proj-info-row:last-child { border-bottom: none; }
+.proj-info-label { color: var(--text-muted); }
+.proj-info-val   { font-family: 'DM Mono', monospace; font-weight: 600; color: var(--text); }
+
+.note-box {
+  margin-top: 14px;
+  background: #fffbf0;
+  border: 1px solid #f0d080;
+  border-radius: 8px;
+  padding: 10px 13px;
+  font-size: 11px;
+  color: #7a5800;
+  line-height: 1.5;
+  font-family: 'DM Mono', monospace;
+}
+
+/* Visibility toggles */
+.vis-toggles { display:flex; gap:5px; flex-wrap:wrap; margin-top:5px; }
+.vis-toggle { display:inline-flex; align-items:center; gap:5px; font-size:10px; font-family:'DM Mono',monospace; font-weight:500; padding:2px 8px 2px 6px; border-radius:20px; cursor:pointer; border:1.5px solid; transition:all 0.15s; user-select:none; white-space:nowrap; }
+.vis-toggle.vis-on  { background:#e6f9e6; color:#1a6b1a; border-color:#b6ddb6; }
+.vis-toggle.vis-off { background:#fdeef0; color:#c41e35; border-color:#f5b0bb; }
+.vis-toggle:hover   { filter:brightness(0.93); }
+.vis-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.vis-on  .vis-dot { background:#4caf50; }
+.vis-off .vis-dot { background:#e53935; }
+
+@media (max-width: 900px) {
+  .proj-admin-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .proj-table-wrap { overflow-x: auto; }
+  .proj-table { min-width: 680px; }
+  .proj-table th, .proj-cell { padding: 10px 12px; }
+}
 </style>
 </head>
 <body>
 
+<!-- HEADER -->
 <header>
   <div class="header-left">
     <div class="logo">
-      <a href="index.html" style="display:flex;align-items:center;text-decoration:none;">
+      <a href="home.html" style="display:flex;align-items:center;text-decoration:none;">
         <img src="logo.png" alt="HKEX" class="header-logo">
       </a>
     </div>
     <nav class="main-nav">
-      <a href="btc.html" class="nav-link">Buy Bitcoin</a>
+      <a href="index.html" class="nav-link">Buy Bitcoin</a>
       <a href="projects.html" class="nav-link active">Projects</a>
       <a href="staking.html" class="nav-link">OTC</a>
     </nav>
   </div>
   <div class="header-right">
-    <div class="btc-ticker"><span class="btc-ticker-label">BTC</span><span class="btc-ticker-price" id="btcPrice">--</span></div>
+    <div class="btc-ticker" id="btcTicker">
+      <span class="btc-ticker-label">BTC</span>
+      <span class="btc-ticker-price" id="btcPrice">--</span>
+    </div>
     <span class="user-badge" id="headerUserBadge"></span>
     <button class="btn btn-ghost btn-sm" id="btnSignOut" style="display:none" onclick="doSignOut()">Sign Out</button>
   </div>
 </header>
 
+<!-- TOAST -->
 <div class="toast" id="toast"><span class="toast-dot"></span><span id="toastMsg"></span></div>
 
-<!-- ══ GUEST ══════════════════════════════════════════════════════════════════ -->
+<!-- ── GUEST VIEW ─────────────────────────────────────────────────────────── -->
 <div id="guestView" class="page-wrapper">
-  <div class="page-header"><div><div class="page-title">Projects</div><div class="page-subtitle">Sign in to access this section</div></div></div>
+  <div class="page-header">
+    <div>
+      <div class="page-title">Projects</div>
+      <div class="page-subtitle">Sign in to access this section</div>
+    </div>
+  </div>
   <div class="main-content" style="margin:0;max-width:100%;padding:0;">
     <div class="main-hero" style="border-radius:12px;">
       <h1 style="font-size:24px;">HKEX:Projects</h1>
-      <p>Sign in with your personal brokerage credentials to access project listings.</p>
-      <button class="btn btn-primary" style="padding:11px 28px;font-size:15px;" onclick="openLoginModal()">Sign In to Continue</button>
+      <p>Sign in with your personal brokerage credentials to access project listings and investment tiers.</p>
+      <button class="btn btn-primary" style="padding:11px 28px;font-size:15px;" onclick="openLoginModal()">
+        Sign In to Continue
+      </button>
     </div>
   </div>
 </div>
 
-<!-- ══ USER VIEW ══════════════════════════════════════════════════════════════ -->
+<!-- ── USER VIEW ──────────────────────────────────────────────────────────── -->
 <div id="userView" style="display:none;" class="page-wrapper">
   <div class="page-header">
-    <div><div class="page-title" id="userViewTitle">Projects</div><div class="page-subtitle">Available investment tiers</div></div>
-  </div>
-  <div id="projContent">
-    <div class="proj-table-wrap">
-      <table class="proj-table">
-        <thead><tr>
-          <th style="text-align:left;">Project Name</th>
-          <th>Project Value</th><th>Trading Period</th>
-          <th>Guaranteed RoI, %</th><th>Guaranteed RoI, $</th>
-          <th>Final Equity</th><th>Status</th>
-        </tr></thead>
-        <tbody id="userProjTbody"><tr><td colspan="7" style="padding:32px;text-align:center;color:var(--text-muted);">Loading&hellip;</td></tr></tbody>
-      </table>
-      <div class="proj-actions">
-        <span class="proj-save-status">Click any <strong>Available</strong> tier to reserve it.</span>
-      </div>
+    <div>
+      <div class="page-title" id="userWelcomeTitle">Projects</div>
+      <div class="page-subtitle">Available investment tiers — click any row to enquire</div>
     </div>
   </div>
-  <div id="projBlocked" style="display:none;">
-    <div class="empty-state">
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-      <h2>HKEX:Projects</h2>
-      <p>No available projects for your account type at the moment. Please check back later or contact your broker.</p>
+  <div class="proj-table-wrap">
+    <table class="proj-table" id="userProjectsTable">
+      <thead>
+        <tr>
+          <th class="th-name">Project Name</th>
+          <th>Project Value</th>
+          <th>Trading Period</th>
+          <th>Guaranteed RoI, %</th>
+          <th>Guaranteed RoI, $</th>
+          <th>Final Equity</th>
+        </tr>
+      </thead>
+      <tbody id="userProjectsTbody">
+        <tr><td colspan="6" style="padding:32px;text-align:center;color:var(--text-muted);font-size:13px;">Loading…</td></tr>
+      </tbody>
+    </table>
+    <div class="proj-table-actions">
+      <span class="proj-save-status">Contact your broker to invest in any of the tiers above.</span>
     </div>
   </div>
 </div>
 
-<!-- ══ ADMIN VIEW ═════════════════════════════════════════════════════════════ -->
+<!-- ── ADMIN VIEW ─────────────────────────────────────────────────────────── -->
 <div id="adminView" style="display:none;" class="page-wrapper">
-  <div class="page-header" style="margin-bottom:20px;">
-    <div><div class="page-title">Projects &mdash; Admin</div><div class="page-subtitle">Select a user to edit their project tiers</div></div>
+  <div class="page-header">
+    <div>
+      <div class="page-title">Projects — Admin</div>
+      <div class="page-subtitle">Manage users and edit their project tiers</div>
+    </div>
   </div>
-  <div class="proj-admin-wrap">
-    <!-- LEFT: users list -->
+  <div class="proj-admin-layout">
+
+    <!-- Left: users list -->
     <div>
       <div class="users-panel">
         <div class="panel-header">
@@ -151,62 +339,50 @@
         <ul class="users-list" id="projAdminUsersList"></ul>
       </div>
     </div>
-    <!-- RIGHT: edit panel -->
+
+    <!-- Right: edit panel -->
     <div>
-      <div class="proj-edit-panel">
-        <div class="proj-edit-empty" id="projEditEmpty">
+      <div class="edit-panel" id="projEditPanel">
+        <div class="edit-panel-empty" id="projEditPanelEmpty">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
           <span>Select a user to edit their project tiers</span>
         </div>
-        <div id="projEditContent" style="display:none;">
+        <div id="projEditPanelContent" style="display:none;">
           <div class="panel-header">
-            <span class="panel-title" id="projEditTitle">Editing: &mdash;</span>
-            <div style="display:flex;gap:8px;">
-              <button class="btn btn-outline btn-sm" onclick="addProjectRow()">+ Row</button>
-              <button class="btn btn-primary btn-sm" onclick="saveUserProjects()">Save</button>
-            </div>
+            <span class="panel-title" id="projEditPanelTitle">Editing: —</span>
+            <button class="btn btn-primary btn-sm" onclick="saveProjects()">Save Changes</button>
           </div>
-          <div style="overflow-x:auto;">
-            <table class="proj-table" id="projEditTable">
-              <thead><tr>
-                <th style="text-align:left;">Project Name</th>
-                <th>Project Value</th><th>Trading Period</th>
-                <th>Guaranteed RoI, %</th><th>Guaranteed RoI, $</th>
-                <th>Final Equity</th><th style="width:48px;"></th>
-              </tr></thead>
-              <tbody id="projEditTbody"><tr><td colspan="7" style="padding:32px;text-align:center;color:var(--text-muted);">Loading&hellip;</td></tr></tbody>
-            </table>
-          </div>
-          <div class="proj-actions">
-            <span style="font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace;">RoI $ = Value &times; RoI% &nbsp;&middot;&nbsp; Final Equity = Value + RoI $</span>
-            <span class="proj-save-status" id="projEditSaveStatus"></span>
+          <table class="proj-table" id="adminProjectsTable">
+            <thead>
+              <tr>
+                <th class="th-name">Project Name</th>
+                <th>Project Value</th>
+                <th>Trading Period</th>
+                <th>Guaranteed RoI, %</th>
+                <th>Guaranteed RoI, $</th>
+                <th>Final Equity</th>
+              </tr>
+            </thead>
+            <tbody id="adminProjectsTbody">
+              <tr><td colspan="6" style="padding:32px;text-align:center;color:var(--text-muted);font-size:13px;">Loading…</td></tr>
+            </tbody>
+          </table>
+          <div class="proj-table-actions">
+            <span style="font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace;">RoI $ = Value × RoI% &nbsp;·&nbsp; Final Equity = Value + RoI $</span>
+            <span class="proj-save-status" id="adminSaveStatus"></span>
           </div>
         </div>
       </div>
     </div>
+
   </div>
 </div>
 
-<!-- ══ LOGIN MODAL ════════════════════════════════════════════════════════════ -->
-<div class="modal-overlay" id="loginModal">
-  <div class="modal" style="max-width:380px;">
-    <h3>Sign In</h3><p>Enter your brokerage credentials to continue.</p>
-    <div class="modal-form">
-      <div class="input-group"><label>Email</label><input type="email" id="modalLoginUsername" placeholder="Enter email address" autocomplete="off"></div>
-      <div class="input-group"><label>Password</label><input type="password" id="modalLoginPassword" placeholder="Enter password" onkeydown="if(event.key==='Enter')doModalLogin()"></div>
-      <div class="login-error" id="modalLoginError">Invalid username or password.</div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" id="modalLoginBtn" onclick="doModalLogin()">Sign In</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══ ADD USER MODAL ═════════════════════════════════════════════════════════ -->
+<!-- ── ADD USER MODAL ─────────────────────────────────────────────────────── -->
 <div class="modal-overlay" id="addUserModal">
   <div class="modal">
-    <h3>Add New User</h3><p>Create a new user account.</p>
+    <h3>Add New User</h3>
+    <p>Create a new user account with default project tiers.</p>
     <div class="modal-form">
       <div class="input-group"><label>Full Name</label><input type="text" id="newUserName" placeholder="e.g. Jane Smith"></div>
       <div class="input-group"><label>Email Address</label><input type="email" id="newUserUsername" placeholder="e.g. jane@example.com"></div>
@@ -220,14 +396,15 @@
   </div>
 </div>
 
-<!-- ══ EDIT CREDENTIALS MODAL ════════════════════════════════════════════════ -->
+<!-- ── EDIT CREDENTIALS MODAL ────────────────────────────────────────────── -->
 <div class="modal-overlay" id="editCredentialsModal">
   <div class="modal">
-    <h3>Edit User</h3><p id="editCredentialsSubtitle"></p>
+    <h3>Edit User</h3>
+    <p id="editCredentialsSubtitle"></p>
     <div class="modal-form">
       <input type="hidden" id="editCredUserId">
-      <div class="input-group"><label>Full Name</label><input type="text" id="editCredName"></div>
-      <div class="input-group"><label>Balance <span style="font-weight:400;color:var(--text-muted)">(USD)</span></label><input type="number" id="editCredBalance" min="0" step="0.01"></div>
+      <div class="input-group"><label>Full Name</label><input type="text" id="editCredName" placeholder="Full name"></div>
+      <div class="input-group"><label>Balance <span style="font-weight:400;color:var(--text-muted)">(USD)</span></label><input type="number" id="editCredBalance" placeholder="0.00" min="0" step="0.01"></div>
       <div class="login-error" id="editCredError"></div>
     </div>
     <div class="modal-actions">
@@ -237,10 +414,11 @@
   </div>
 </div>
 
-<!-- ══ DELETE USER MODAL ══════════════════════════════════════════════════════ -->
+<!-- ── DELETE USER MODAL ─────────────────────────────────────────────────── -->
 <div class="modal-overlay" id="deleteUserModal">
   <div class="modal">
-    <h3>Delete User</h3><p id="deleteUserMsg">Are you sure? This cannot be undone.</p>
+    <h3>Delete User</h3>
+    <p id="deleteUserMsg">Are you sure? This cannot be undone.</p>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
       <button class="btn btn-danger" onclick="confirmDeleteUser()">Delete</button>
@@ -248,437 +426,534 @@
   </div>
 </div>
 
-<!-- ══ RESERVE CONFIRMATION MODAL ════════════════════════════════════════════ -->
-<div class="modal-overlay" id="reserveModal">
-  <div class="modal" style="max-width:440px;">
-    <h3 style="color:#003465;">Confirm Reservation</h3>
-    <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">Please review the project details before confirming.</p>
-    <div class="reserve-modal-details" id="reserveModalDetails"></div>
-    <p style="font-size:12px;color:var(--text-muted);margin-top:8px;line-height:1.5;">
-      Once confirmed, this project will be marked as <strong>Reserved</strong> and a PDF receipt will be generated.
-    </p>
-    <div class="modal-actions" style="margin-top:16px;">
-      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" style="background:#003465;" onclick="confirmProjReservation()">Confirm &amp; Reserve</button>
+<!-- ── LOGIN MODAL ────────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal" style="max-width:380px;">
+    <h3>Sign In</h3>
+    <p>Enter your brokerage credentials to continue.</p>
+    <div class="modal-form">
+      <div class="input-group">
+        <label>Email</label>
+        <input type="email" id="modalLoginUsername" placeholder="Enter email address" autocomplete="off">
+      </div>
+      <div class="input-group">
+        <label>Password</label>
+        <input type="password" id="modalLoginPassword" placeholder="Enter password" onkeydown="if(event.key==='Enter')doModalLogin()">
+      </div>
+      <div class="login-error" id="modalLoginError">Invalid username or password.</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeLoginModal()">Cancel</button>
+      <button class="btn btn-primary" id="modalLoginBtn" onclick="doModalLogin()">Sign In</button>
     </div>
   </div>
 </div>
 
-<footer class="site-footer"><span id="footerCopyright">&#169;2017-26 Hong Kong Exchanges and Clearing Limited. All rights reserved.</span></footer>
+<footer class="site-footer">
+  <span id="footerCopyright">&#169;2017-26 Hong Kong Exchanges and Clearing Limited. All rights reserved.</span>
+</footer>
 
 <script>
 const sb = window._supabase;
+let currentUser       = null;
+let projectsData      = [];
+let selectedProjUser  = null;
+let deleteTargetId    = null;
 
-// ── STATE ─────────────────────────────────────────────────────────────────────
-let currentUser      = null;
-let selectedProjUser = null;
-let editingProjData  = [];
-let deleteTargetId   = null;
-let projReserveTarget = null;
+// ── TIER STYLING ──────────────────────────────────────────────────────────────
+const TIER_CLASS = { Bronze:'bronze', Silver:'silver', Gold:'gold', Platinum:'platinum' };
 
-// ── DEFAULTS ──────────────────────────────────────────────────────────────────
-const DEFAULT_PROJECTS = [
-  { name:'Bronze',   value:3500,  period:13, roi_pct:68, roi_usd:2380,  final_equity:5880,  status:'' },
-  { name:'Silver',   value:10000, period:11, roi_pct:72, roi_usd:7200,  final_equity:17200, status:'' },
-  { name:'Gold',     value:25000, period:10, roi_pct:74, roi_usd:18500, final_equity:43500, status:'' },
-  { name:'Platinum', value:50000, period:9,  roi_pct:77, roi_usd:38500, final_equity:88500, status:'' },
-];
+function getTierClass(name) {
+  const key = (name || '').trim();
+  return TIER_CLASS[key] || 'silver';
+}
 
 // ── UTILS ─────────────────────────────────────────────────────────────────────
-const esc = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const fmt = v => { const n=parseFloat(String(v).replace(/[^0-9.]/g,'')); return isNaN(n)?String(v):n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:2}); };
-const calcRoi   = (val,pct)=>{ const v=parseFloat(String(val).replace(/[^0-9.]/g,'')),r=parseFloat(String(pct).replace(/[^0-9.]/g,'')); return (isNaN(v)||isNaN(r))?0:Math.round(v*r/100*100)/100; };
-const calcFinal = (val,roi)=>{ const v=parseFloat(String(val).replace(/[^0-9.]/g,'')),r=parseFloat(String(roi)); return (isNaN(v)||isNaN(r))?0:Math.round((v+r)*100)/100; };
-const getTierCls = n=>({'Bronze':'bronze','Silver':'silver','Gold':'gold','Platinum':'platinum'}[(n||'').trim()]||'silver');
-const formatAmount = raw => { const n=parseFloat(String(raw).replace(/[^0-9.]/g,'')); return isNaN(n)?raw:n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:2}); };
-
-function showToast(msg,type){
-  const t=document.getElementById('toast');
-  document.getElementById('toastMsg').textContent=msg;
-  t.className='toast show'+(type==='success'?' toast-success':'');
-  setTimeout(()=>t.classList.remove('show','toast-success'),2500);
+function fmtAmt(v) {
+  const n = parseFloat(String(v).replace(/[^0-9.]/g, ''));
+  if (isNaN(n)) return '';
+  return n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
-function setHeader(user){
-  document.getElementById('headerUserBadge').textContent=user?user.name+(user.role==='admin'?' \u00b7 admin':''):'';
-  document.getElementById('btnSignOut').style.display=user?'':'none';
+
+function amountCell(val, extraClass) {
+  return `<div class="proj-amount"><span class="proj-dollar">$</span><span class="${extraClass||''}">${fmtAmt(val)}</span></div>`;
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.className = 'toast show' + (type === 'success' ? ' toast-success' : '');
+  setTimeout(() => t.classList.remove('show', 'toast-success'), 2500);
+}
+
+function setHeader(user) {
+  const badge = user ? user.name + (user.role === 'admin' ? ' · admin' : '') : '';
+  document.getElementById('headerUserBadge').textContent = badge;
+  document.getElementById('btnSignOut').style.display = user ? '' : 'none';
 }
 
 // ── SUPABASE DATA ─────────────────────────────────────────────────────────────
-const _cache={};
-async function loadUserProjects(uid){
-  if(_cache[uid]) return JSON.parse(JSON.stringify(_cache[uid]));
-  const {data,error}=await sb.from('user_projects_data').select('data').eq('user_id',uid).single();
-  if(error||!data){ const d=JSON.parse(JSON.stringify(DEFAULT_PROJECTS)); _cache[uid]=d; return JSON.parse(JSON.stringify(d)); }
-  _cache[uid]=data.data; return JSON.parse(JSON.stringify(data.data));
+const DEFAULT_PROJECTS = [
+  { name:'Bronze',   value:3500,  period:13, roi_pct:68, roi_usd:2380,  final_equity:5880  },
+  { name:'Silver',   value:10000, period:11, roi_pct:72, roi_usd:7200,  final_equity:17200 },
+  { name:'Gold',     value:25000, period:10, roi_pct:74, roi_usd:18500, final_equity:43500 },
+  { name:'Platinum', value:50000, period:9,  roi_pct:77, roi_usd:38500, final_equity:88500 },
+];
+
+const _projCache = {};
+
+async function loadProjects(userId) {
+  const uid = userId || (currentUser ? currentUser.id : null);
+  if (!uid) return JSON.parse(JSON.stringify(DEFAULT_PROJECTS));
+  if (_projCache[uid]) return JSON.parse(JSON.stringify(_projCache[uid]));
+  const { data, error } = await sb.from('user_projects_data').select('data').eq('user_id', uid).single();
+  if (error || !data) {
+    const def = JSON.parse(JSON.stringify(DEFAULT_PROJECTS));
+    _projCache[uid] = def;
+    return JSON.parse(JSON.stringify(def));
+  }
+  _projCache[uid] = data.data;
+  return JSON.parse(JSON.stringify(data.data));
 }
-async function saveUserProjectsToDB(uid,rows){
-  _cache[uid]=rows;
-  const {error}=await sb.from('user_projects_data').upsert({user_id:uid,data:rows,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+
+async function saveProjectsToDb(rows, userId) {
+  const uid = userId || selectedProjUser || (currentUser ? currentUser.id : null);
+  if (!uid) return false;
+  _projCache[uid] = rows;
+  const { error } = await sb.from('user_projects_data').upsert(
+    { user_id: uid, data: rows, updated_at: new Date().toISOString() },
+    { onConflict: 'user_id' }
+  );
   return !error;
 }
-async function getUsers(){ const {data}=await sb.from('profiles').select('*').neq('role','admin'); return data||[]; }
-async function getUserById(uid){ const {data}=await sb.from('profiles').select('*').eq('id',uid).single(); return data; }
 
-// ── VISIBILITY ────────────────────────────────────────────────────────────────
-async function toggleVisibility(uid,field,btn){
-  const isOn=btn.classList.contains('vis-on'), newVal=!isOn, upd={};
-  upd[field]=newVal;
-  const {error}=await sb.from('profiles').update(upd).eq('id',uid);
-  if(error){showToast('Failed to update visibility');return;}
-  btn.classList.toggle('vis-on',newVal); btn.classList.toggle('vis-off',!newVal);
-  const lbl=btn.querySelector('.vis-label');
-  const pfx=field==='visibility_btc'?'BTC':field==='visibility_projects'?'Projects':'OTC';
-  if(lbl) lbl.textContent=pfx+': '+(newVal?'Visible':'Hidden');
-  showToast(pfx+' visibility '+(newVal?'enabled':'disabled'),newVal?'success':'');
+async function getAllUsers() {
+  const { data } = await sb.from('profiles').select('*').neq('role', 'admin');
+  return data || [];
 }
 
-// ── VIEW SWITCHING ────────────────────────────────────────────────────────────
-function showView(name){ ['guestView','userView','adminView'].forEach(id=>{ document.getElementById(id).style.display=id===name?'':'none'; }); }
+async function getUserByIdLocal(uid) {
+  const { data } = await sb.from('profiles').select('*').eq('id', uid).single();
+  return data;
+}
 
-// ── USER TABLE ────────────────────────────────────────────────────────────────
-function renderUserTable(rows){
-  const tbody=document.getElementById('userProjTbody');
-  if(!tbody) return;
-  tbody.innerHTML=rows.map((p,i)=>{
-    const tc=getTierCls(p.name);
-    const st=p.status||'';
-    let statusCell;
-    if(st==='Reserved') statusCell=`<span class="proj-status-pill proj-status-reserved">Reserved</span>`;
-    else statusCell=`<span class="proj-status-pill proj-status-available" onclick="openProjReservePanel(this,${i})" title="Click to reserve">Available</span>`;
-    return `<tr class="tier-${tc}">
-      <td><span class="proj-ro proj-ro-name"><span class="tier-pill pill-${tc}"><span class="tier-pill-dot"></span>${esc(p.name)}</span></span></td>
-      <td><span class="proj-ro"><span class="proj-amt"><span class="proj-dollar">$</span>${fmt(p.value)}</span></span></td>
-      <td><span class="proj-ro proj-ro-center">${esc(String(p.period))} days</span></td>
-      <td><span class="proj-ro proj-ro-center"><span class="proj-roi-pct">${esc(String(p.roi_pct))}%</span></span></td>
-      <td><span class="proj-ro"><span class="proj-amt"><span class="proj-dollar">$</span>${fmt(p.roi_usd)}</span></span></td>
-      <td><span class="proj-ro"><span class="proj-amt"><span class="proj-dollar">$</span><span class="proj-final">${fmt(p.final_equity)}</span></span></span></td>
-      <td style="padding:8px;text-align:center;">${statusCell}</td>
+async function toggleVisibility(userId, field, btnEl) {
+  const isOn   = btnEl.classList.contains('vis-on');
+  const newVal = !isOn;
+  const update = {};
+  update[field] = newVal;
+  const { error } = await sb.from('profiles').update(update).eq('id', userId);
+  if (error) { showToast('Failed to update visibility'); return; }
+  btnEl.classList.toggle('vis-on',  newVal);
+  btnEl.classList.toggle('vis-off', !newVal);
+  const label  = btnEl.querySelector('.vis-label');
+  const prefix = field === 'visibility_btc' ? 'BTC' : field === 'visibility_projects' ? 'Projects' : 'OTC';
+  if (label) label.textContent = prefix + ': ' + (newVal ? 'Visible' : 'Hidden');
+  showToast(prefix + ' visibility ' + (newVal ? 'enabled' : 'disabled'), newVal ? 'success' : '');
+}
+
+// ── RENDER: USER (read-only) ───────────────────────────────────────────────────
+function renderUserTable(rows) {
+  const tbody = document.getElementById('userProjectsTbody');
+  if (!tbody) return;
+  tbody.innerHTML = rows.map(p => {
+    const tc = getTierClass(p.name);
+    return `
+    <tr class="tier-${tc}">
+      <td class="proj-cell proj-cell-name">
+        <span class="tier-pill pill-${tc}">
+          <span class="tier-pill-dot"></span>${escHtml(p.name)}
+        </span>
+      </td>
+      <td class="proj-cell">${amountCell(p.value)}</td>
+      <td class="proj-cell proj-cell-center" style="font-family:'DM Mono',monospace;">${escHtml(String(p.period))} days</td>
+      <td class="proj-cell proj-cell-center"><span class="proj-roi-pct">${escHtml(String(p.roi_pct))}%</span></td>
+      <td class="proj-cell">${amountCell(p.roi_usd)}</td>
+      <td class="proj-cell">${amountCell(p.final_equity, 'proj-final')}</td>
     </tr>`;
   }).join('');
 }
 
-// ── PROJECT RESERVATION ───────────────────────────────────────────────────────
-function openProjReservePanel(el, rowIdx){
-  // Close any existing
-  document.querySelectorAll('.proj-reserve-row').forEach(r=>r.remove());
-  const tr = el.closest('tr');
-  const p  = _userProjRows[rowIdx];
-  if(!p) return;
-  projReserveTarget = { rowIdx, p, userId: currentUser.id };
-  const colCount = 7;
-  const panelRow = document.createElement('tr');
-  panelRow.className = 'proj-reserve-row';
-  panelRow.innerHTML = `<td colspan="${colCount}">
-    <div class="proj-reserve-panel">
-      <div class="reserve-panel-info" style="flex:1;">
-        <div class="rp-label">Project Selected for Reservation</div>
-        <div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:4px;">
-          <div><span style="color:var(--text-muted);font-size:11px;">Project</span><br><strong>${esc(p.name)}</strong></div>
-          <div><span style="color:var(--text-muted);font-size:11px;">Value</span><br><strong>$${fmt(p.value)}</strong></div>
-          <div><span style="color:var(--text-muted);font-size:11px;">Period</span><br><strong>${esc(String(p.period))} days</strong></div>
-          <div><span style="color:var(--text-muted);font-size:11px;">RoI</span><br><strong>${esc(String(p.roi_pct))}%</strong></div>
-          <div><span style="color:var(--text-muted);font-size:11px;">Final Equity</span><br><strong>$${fmt(p.final_equity)}</strong></div>
+// ── RENDER: ADMIN (editable) ───────────────────────────────────────────────────
+function renderAdminTable(rows) {
+  const tbody = document.getElementById('adminProjectsTbody');
+  if (!tbody) return;
+  tbody.innerHTML = rows.map((p, i) => {
+    const tc = getTierClass(p.name);
+    // roi_usd and final_equity are derived — shown in dimmed read-only inputs
+    const roiUsd      = calcRoiUsd(p.value, p.roi_pct);
+    const finalEquity = calcFinalEquity(p.value, roiUsd);
+    return `
+    <tr class="tier-${tc}" data-row="${i}">
+      <td style="padding:4px 8px;min-width:140px;">
+        <input class="proj-input input-name" data-row="${i}" data-field="name"
+          value="${escHtml(p.name)}"
+          oninput="onAdminInput(this)">
+      </td>
+      <td style="padding:4px 8px;min-width:120px;">
+        <div style="display:flex;align-items:center;padding:0 4px;">
+          <span class="proj-dollar" style="font-size:11px;flex-shrink:0;">$</span>
+          <input class="proj-input" data-row="${i}" data-field="value"
+            value="${escHtml(String(p.value))}"
+            oninput="onAdminInput(this)" style="padding-left:4px;">
         </div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;">
-        <button class="btn-reserve" onclick="openProjReserveConfirm()">Reserve this Project →</button>
-        <button class="btn-reserve-cancel" onclick="closeProjReservePanel()">Cancel</button>
-      </div>
-    </div>
-  </td>`;
-  tr.insertAdjacentElement('afterend', panelRow);
-  panelRow.scrollIntoView({behavior:'smooth',block:'nearest'});
-}
-
-let _userProjRows = [];
-function closeProjReservePanel(){ document.querySelectorAll('.proj-reserve-row').forEach(r=>r.remove()); projReserveTarget=null; }
-
-function openProjReserveConfirm(){
-  if(!projReserveTarget) return;
-  const {p} = projReserveTarget;
-  document.getElementById('reserveModalDetails').innerHTML = `
-    <div class="rd-row"><span class="rd-label">Project</span><span class="rd-val">${esc(p.name)}</span></div>
-    <div class="rd-row"><span class="rd-label">Project Value</span><span class="rd-val">$${fmt(p.value)}</span></div>
-    <div class="rd-row"><span class="rd-label">Trading Period</span><span class="rd-val">${esc(String(p.period))} days</span></div>
-    <div class="rd-row"><span class="rd-label">Guaranteed RoI</span><span class="rd-val">${esc(String(p.roi_pct))}% ($${fmt(p.roi_usd)})</span></div>
-    <div class="rd-row"><span class="rd-label">Final Equity</span><span class="rd-val" style="color:#1a6b1a;font-weight:700;">$${fmt(p.final_equity)}</span></div>
-  `;
-  document.getElementById('reserveModal').classList.add('open');
-}
-
-async function confirmProjReservation(){
-  if(!projReserveTarget) return;
-  const {rowIdx,userId} = projReserveTarget;
-  const rows = await loadUserProjects(userId);
-  if(rows[rowIdx]) rows[rowIdx].status = 'Reserved';
-  await saveUserProjectsToDB(userId, rows);
-  _cache[userId] = rows;
-  closeModal();
-  closeProjReservePanel();
-  _userProjRows = rows;
-  renderUserTable(rows);
-  showToast('Project reserved successfully','success');
-
-  // PDF
-  generateProjPDF(projReserveTarget);
-  // Email
-  sendProjEmail(projReserveTarget);
-  projReserveTarget = null;
-}
-
-function generateProjPDF(target){
-  try{
-    const {jsPDF}=window.jspdf;
-    if(!jsPDF) return;
-    const doc=new jsPDF({unit:'pt',format:'a4'});
-    const now=new Date(); const ts=now.toLocaleString('en-GB',{dateStyle:'long',timeStyle:'short'});
-    const {p}=target; const userName=currentUser?currentUser.name:'User';
-    doc.setFillColor(0,52,101); doc.rect(0,0,595,70,'F');
-    doc.setTextColor(255,255,255); doc.setFontSize(20); doc.setFont('helvetica','bold');
-    doc.text('HKEX WorkSpace',40,38); doc.setFontSize(10); doc.setFont('helvetica','normal');
-    doc.text('Project Reservation Receipt',40,56);
-    doc.setTextColor(0,52,101); doc.setFontSize(15); doc.setFont('helvetica','bold');
-    doc.text('Project Reservation Confirmation',40,105);
-    doc.setTextColor(100,100,100); doc.setFontSize(9); doc.setFont('helvetica','normal');
-    doc.text(`Issued: ${ts}`,40,122); doc.text(`Client: ${userName}`,40,136);
-    doc.setDrawColor(0,52,101); doc.setLineWidth(0.5); doc.line(40,148,555,148);
-    const fields=[['Project',p.name],['Project Value','$'+fmt(p.value)],['Trading Period',p.period+' days'],['Guaranteed RoI',p.roi_pct+'% ($'+fmt(p.roi_usd)+')'],['Final Equity','$'+fmt(p.final_equity)],['Status','Reserved'],['Reserved By',userName],['Reservation Time',ts]];
-    let y=172;
-    fields.forEach(([label,value],i)=>{
-      doc.setFillColor(...(i%2===0?[248,250,253]:[255,255,255])); doc.rect(40,y-13,515,22,'F');
-      doc.setTextColor(120,130,145); doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.text(label,52,y);
-      doc.setTextColor(20,40,70); doc.setFont('helvetica','bold'); doc.text(String(value),240,y); y+=22;
-    });
-    doc.setFillColor(0,52,101); doc.rect(0,780,595,62,'F');
-    doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont('helvetica','normal');
-    doc.text('HKEX WorkSpace \u00a9 '+now.getFullYear(),40,828);
-    doc.save(`HKEX_Project_${p.name}_${now.toISOString().slice(0,10)}.pdf`);
-  }catch(e){ console.warn('PDF failed:',e); }
-}
-
-async function sendProjEmail(target){
-  if(!currentUser) return;
-  const {data:{session}}=await sb.auth.getSession();
-  const toEmail=session?.user?.email||''; if(!toEmail) return;
-  const {p}=target;
-  const now=new Date().toLocaleString('en-GB',{dateStyle:'long',timeStyle:'short'});
-  const payload={toEmail,toName:currentUser.name,accId:p.name,suppli:'HKEX Projects',accPx:'$'+fmt(p.value),qty:p.period+' days',purVal:'$'+fmt(p.final_equity),balance:'0',reqFundingFmt:'\u2014',reservationTime:now};
-  const url='https://pwrrfsgnkxronosyyirn.supabase.co/functions/v1/send-reservation-email';
-  try{
-    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(session?.access_token||''),'apikey':'sb_publishable_wF1sNNonwFYmm1SoXUuudA_Yz13a-v7'},body:JSON.stringify(payload)});
-    const json=await res.json();
-    if(res.ok) showToast('Confirmation email sent to '+toEmail,'success');
-    else console.error('Email failed:',json);
-  }catch(e){ console.error('Email error:',e); }
-}
-
-// ── ADMIN EDIT TABLE ──────────────────────────────────────────────────────────
-function renderEditTable(rows){
-  const tbody=document.getElementById('projEditTbody');
-  if(!tbody) return;
-  tbody.innerHTML=rows.map((p,i)=>{
-    const tc=getTierCls(p.name);
-    const roi=calcRoi(p.value,p.roi_pct), fin=calcFinal(p.value,roi);
-    return `<tr class="tier-${tc}" data-row="${i}">
-      <td style="padding:4px 6px;min-width:120px;"><input class="proj-input inp-name" data-row="${i}" data-field="name" value="${esc(p.name)}" oninput="onProjInput(this)"></td>
-      <td style="padding:4px 6px;min-width:110px;"><div style="display:flex;align-items:center;padding:0 4px;"><span class="proj-dollar" style="flex-shrink:0;">$</span><input class="proj-input" data-row="${i}" data-field="value" value="${esc(String(p.value))}" oninput="onProjInput(this)" style="padding-left:4px;"></div></td>
-      <td style="padding:4px 6px;min-width:90px;"><input class="proj-input" data-row="${i}" data-field="period" value="${esc(String(p.period))}" oninput="onProjInput(this)" style="text-align:center;"></td>
-      <td style="padding:4px 6px;min-width:90px;"><div style="display:flex;align-items:center;justify-content:center;gap:2px;"><input class="proj-input inp-roi" data-row="${i}" data-field="roi_pct" value="${esc(String(p.roi_pct))}" oninput="onProjInput(this)" style="max-width:54px;"><span style="font-size:12px;color:#1a6b1a;font-weight:600;padding-right:6px;">%</span></div></td>
-      <td style="padding:4px 6px;min-width:110px;" id="proj-roi-${i}"><div style="display:flex;align-items:center;padding:0 4px;"><span class="proj-dollar" style="flex-shrink:0;">$</span><input class="proj-input inp-derived" value="${esc(fmt(roi))}" readonly tabindex="-1" style="padding-left:4px;"></div></td>
-      <td style="padding:4px 6px;min-width:110px;" id="proj-fin-${i}"><div style="display:flex;align-items:center;padding:0 4px;"><span class="proj-dollar" style="flex-shrink:0;">$</span><input class="proj-input inp-derived proj-final" value="${esc(fmt(fin))}" readonly tabindex="-1" style="padding-left:4px;"></div></td>
-      <td style="padding:4px;text-align:center;"><button onclick="removeProjectRow(${i})" style="background:none;border:none;cursor:pointer;color:#c41e35;font-size:16px;padding:4px 8px;" title="Remove row">&#x2715;</button></td>
+      </td>
+      <td style="padding:4px 8px;min-width:110px;">
+        <input class="proj-input proj-cell-center" data-row="${i}" data-field="period"
+          value="${escHtml(String(p.period))}"
+          oninput="onAdminInput(this)" style="text-align:center;">
+      </td>
+      <td style="padding:4px 8px;min-width:110px;">
+        <div style="display:flex;align-items:center;justify-content:center;gap:2px;">
+          <input class="proj-input input-roi-pct" data-row="${i}" data-field="roi_pct"
+            value="${escHtml(String(p.roi_pct))}"
+            oninput="onAdminInput(this)" style="text-align:center;max-width:60px;">
+          <span style="font-size:12px;color:#1a6b1a;font-weight:600;padding-right:6px;">%</span>
+        </div>
+      </td>
+      <td style="padding:4px 8px;min-width:130px;" id="cell-roi-${i}">
+        <div style="display:flex;align-items:center;padding:0 4px;">
+          <span class="proj-dollar" style="font-size:11px;flex-shrink:0;">$</span>
+          <input class="proj-input input-derived" data-row="${i}" data-field="roi_usd"
+            value="${escHtml(fmtAmt(roiUsd))}" readonly tabindex="-1" style="padding-left:4px;">
+        </div>
+      </td>
+      <td style="padding:4px 8px;min-width:130px;" id="cell-final-${i}">
+        <div style="display:flex;align-items:center;padding:0 4px;">
+          <span class="proj-dollar" style="font-size:11px;flex-shrink:0;">$</span>
+          <input class="proj-input input-derived proj-final" data-row="${i}" data-field="final_equity"
+            value="${escHtml(fmtAmt(finalEquity))}" readonly tabindex="-1" style="padding-left:4px;">
+        </div>
+      </td>
     </tr>`;
   }).join('');
 }
 
-function onProjInput(el){
-  const i=parseInt(el.dataset.row), field=el.dataset.field, raw=el.value;
-  if(field==='name'){ editingProjData[i].name=raw; const tr=el.closest('tr'); tr.className=tr.className.replace(/tier-\w+/,'tier-'+getTierCls(raw)); }
-  else if(field==='value')   editingProjData[i].value=parseFloat(raw.replace(/[^0-9.]/g,''))||0;
-  else if(field==='period')  editingProjData[i].period=parseInt(raw.replace(/[^0-9]/g,''))||0;
-  else if(field==='roi_pct') editingProjData[i].roi_pct=parseFloat(raw.replace(/[^0-9.]/g,''))||0;
-  const roi=calcRoi(editingProjData[i].value,editingProjData[i].roi_pct);
-  const fin=calcFinal(editingProjData[i].value,roi);
-  editingProjData[i].roi_usd=roi; editingProjData[i].final_equity=fin;
-  const rc=document.querySelector(`#proj-roi-${i} input`), fc=document.querySelector(`#proj-fin-${i} input`);
-  if(rc) rc.value=fmt(roi); if(fc) fc.value=fmt(fin);
-  const st=document.getElementById('projEditSaveStatus');
-  if(st){st.textContent='\u25cf Unsaved changes';st.className='proj-save-status';}
+// ── CALCULATIONS ──────────────────────────────────────────────────────────────
+function calcRoiUsd(value, roiPct) {
+  const v = parseFloat(String(value).replace(/[^0-9.]/g,''));
+  const r = parseFloat(String(roiPct).replace(/[^0-9.]/g,''));
+  if (isNaN(v) || isNaN(r)) return 0;
+  return Math.round(v * r / 100 * 100) / 100;
 }
 
-function addProjectRow(){
-  editingProjData.push({name:'New Tier',value:0,period:0,roi_pct:0,roi_usd:0,final_equity:0,status:''});
-  renderEditTable(editingProjData);
-  const st=document.getElementById('projEditSaveStatus');
-  if(st){st.textContent='\u25cf Unsaved changes';st.className='proj-save-status';}
+function calcFinalEquity(value, roiUsd) {
+  const v = parseFloat(String(value).replace(/[^0-9.]/g,''));
+  const r = parseFloat(String(roiUsd));
+  if (isNaN(v) || isNaN(r)) return 0;
+  return Math.round((v + r) * 100) / 100;
 }
 
-function removeProjectRow(i){
-  editingProjData.splice(i,1);
-  renderEditTable(editingProjData);
-  const st=document.getElementById('projEditSaveStatus');
-  if(st){st.textContent='\u25cf Unsaved changes';st.className='proj-save-status';}
+// ── ADMIN INPUT HANDLER ───────────────────────────────────────────────────────
+function onAdminInput(el) {
+  const i     = parseInt(el.dataset.row);
+  const field = el.dataset.field;
+  const raw   = el.value;
+
+  // sync to in-memory store
+  if (field === 'name') {
+    projectsData[i].name = raw;
+    // update tier row class live
+    const tr = el.closest('tr');
+    tr.className = tr.className.replace(/tier-\w+/, 'tier-' + getTierClass(raw));
+  } else if (field === 'value') {
+    projectsData[i].value = parseFloat(raw.replace(/[^0-9.]/g,'')) || 0;
+  } else if (field === 'period') {
+    projectsData[i].period = parseInt(raw.replace(/[^0-9]/g,'')) || 0;
+  } else if (field === 'roi_pct') {
+    projectsData[i].roi_pct = parseFloat(raw.replace(/[^0-9.]/g,'')) || 0;
+  }
+
+  // Recalculate derived fields
+  const roiUsd      = calcRoiUsd(projectsData[i].value, projectsData[i].roi_pct);
+  const finalEquity = calcFinalEquity(projectsData[i].value, roiUsd);
+  projectsData[i].roi_usd      = roiUsd;
+  projectsData[i].final_equity = finalEquity;
+
+  // Update derived input displays
+  const roiInput   = document.querySelector(`#cell-roi-${i} input`);
+  const finalInput = document.querySelector(`#cell-final-${i} input`);
+  if (roiInput)   roiInput.value   = fmtAmt(roiUsd);
+  if (finalInput) finalInput.value = fmtAmt(finalEquity);
+
+  // Mark unsaved
+  const st = document.getElementById('adminSaveStatus');
+  if (st) { st.textContent = '● Unsaved changes'; st.className = 'proj-save-status'; }
 }
 
-async function saveUserProjects(){
-  if(!selectedProjUser) return;
-  const btn=document.querySelector('#projEditContent .btn-primary');
-  if(btn){btn.disabled=true;btn.textContent='Saving\u2026';}
-  const ok=await saveUserProjectsToDB(selectedProjUser,editingProjData);
-  if(btn){btn.disabled=false;btn.textContent='Save';}
-  const st=document.getElementById('projEditSaveStatus');
-  if(ok){
-    if(st){st.textContent='\u2713 Saved';st.className='proj-save-status saved';}
-    setTimeout(()=>{if(st){st.textContent='';st.className='proj-save-status';}},2500);
-    showToast('Project data saved','success');
+// ── SAVE ──────────────────────────────────────────────────────────────────────
+async function saveProjects() {
+  if (!selectedProjUser) return;
+  const btns = document.querySelectorAll('#projEditPanelContent .btn-primary');
+  btns.forEach(b => { b.disabled = true; b.textContent = 'Saving…'; });
+
+  const ok = await saveProjectsToDb(projectsData, selectedProjUser);
+
+  btns.forEach(b => { b.disabled = false; b.textContent = 'Save Changes'; });
+  const st = document.getElementById('adminSaveStatus');
+  if (ok) {
+    if (st) { st.textContent = '✓ Saved'; st.className = 'proj-save-status saved'; }
+    setTimeout(() => { if (st) { st.textContent = ''; st.className = 'proj-save-status'; } }, 2500);
+    showToast('Project data saved', 'success');
   } else {
-    if(st) st.textContent='\u2717 Save failed';
+    if (st) { st.textContent = '✗ Save failed'; st.className = 'proj-save-status'; }
     showToast('Save failed — check Supabase RLS permissions');
   }
 }
 
+// ── VIEW SWITCHING ────────────────────────────────────────────────────────────
+function showGuestView() {
+  document.getElementById('guestView').style.display  = '';
+  document.getElementById('userView').style.display   = 'none';
+  document.getElementById('adminView').style.display  = 'none';
+}
+
+function showUserView(user) {
+  document.getElementById('guestView').style.display  = 'none';
+  document.getElementById('userView').style.display   = '';
+  document.getElementById('adminView').style.display  = 'none';
+  const t = document.getElementById('userWelcomeTitle');
+  if (t) t.textContent = 'Projects';
+}
+
+function showAdminView() {
+  document.getElementById('guestView').style.display  = 'none';
+  document.getElementById('userView').style.display   = 'none';
+  document.getElementById('adminView').style.display  = '';
+}
+
+// ── LOGIN MODAL ───────────────────────────────────────────────────────────────
+function openLoginModal() {
+  document.getElementById('modalLoginUsername').value = '';
+  document.getElementById('modalLoginPassword').value = '';
+  document.getElementById('modalLoginError').style.display = 'none';
+  document.getElementById('loginModal').classList.add('open');
+}
+
+function closeLoginModal() {
+  document.getElementById('loginModal').classList.remove('open');
+}
+
+async function doModalLogin() {
+  const btn = document.getElementById('modalLoginBtn');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  const email    = document.getElementById('modalLoginUsername').value.trim().toLowerCase();
+  const password = document.getElementById('modalLoginPassword').value;
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if (error || !data.user) {
+    document.getElementById('modalLoginError').style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Sign In';
+    return;
+  }
+  const { data: profile } = await sb.from('profiles').select('*').eq('id', data.user.id).single();
+  if (!profile) {
+    document.getElementById('modalLoginError').style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Sign In';
+    return;
+  }
+  btn.disabled = false; btn.textContent = 'Sign In';
+  closeLoginModal();
+  currentUser = profile;
+  setHeader(profile);
+  await afterLogin();
+  showToast('Signed in as ' + profile.name, 'success');
+}
+
+async function doSignOut() {
+  await sb.auth.signOut();
+  currentUser = null;
+  setHeader(null);
+  showGuestView();
+  showToast('Signed out');
+}
+
+// ── POST-LOGIN ────────────────────────────────────────────────────────────────
+async function afterLogin() {
+  if (currentUser.role === 'admin') {
+    showAdminView();
+    await renderProjAdminUsersList();
+  } else {
+    projectsData = await loadProjects(currentUser.id);
+    renderUserTable(projectsData);
+    showUserView(currentUser);
+  }
+}
+
 // ── ADMIN USERS LIST ──────────────────────────────────────────────────────────
-async function renderProjAdminUsersList(){
-  const users=await getUsers();
-  const list=document.getElementById('projAdminUsersList');
-  if(!list) return;
-  if(!users.length){list.innerHTML='<li style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;">No users yet.</li>';return;}
-  list.innerHTML=users.map(u=>{
-    const bv=u.visibility_btc!==false, pv=u.visibility_projects!==false, ov=u.visibility_otc===true;
-    return `<li class="user-item ${selectedProjUser===u.id?'selected':''}" onclick="selectProjUser('${u.id}')">
+async function renderProjAdminUsersList() {
+  const users = await getAllUsers();
+  const list  = document.getElementById('projAdminUsersList');
+  if (!list) return;
+  if (!users.length) {
+    list.innerHTML = '<li style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;">No users yet. Add one!</li>';
+    return;
+  }
+  list.innerHTML = users.map(u => {
+    const btcVis  = u.visibility_btc      !== false;
+    const projVis = u.visibility_projects !== false;
+    const otcVis  = u.visibility_otc      === true;
+    return `
+    <li class="user-item ${selectedProjUser === u.id ? 'selected' : ''}" onclick="selectProjUserToEdit('${u.id}')">
       <div style="flex:1;min-width:0;">
-        <div class="user-item-name">${esc(u.name)}</div>
-        <div class="user-item-role">${esc(u.email||'')}</div>
+        <div class="user-item-name">${escHtml(u.name)}</div>
+        <div class="user-item-role">${escHtml(u.email || '')}</div>
+        <div style="margin-top:4px;display:flex;align-items:center;gap:8px;">
+          <span style="font-size:11px;color:#1a6b1a;font-family:'DM Mono',monospace;">Balance: $${fmtAmt(u.balance || 0)}</span>
+          <button class="btn btn-outline btn-sm" style="padding:1px 7px;font-size:10px;" onclick="event.stopPropagation();openEditCredentialsModal('${u.id}')">Edit</button>
+        </div>
         <div class="vis-toggles" style="margin-top:6px;">
-          <button class="vis-toggle ${bv?'vis-on':'vis-off'}" onclick="event.stopPropagation();toggleVisibility('${u.id}','visibility_btc',this)"><span class="vis-dot"></span><span class="vis-label">BTC: ${bv?'Visible':'Hidden'}</span></button>
-          <button class="vis-toggle ${pv?'vis-on':'vis-off'}" onclick="event.stopPropagation();toggleVisibility('${u.id}','visibility_projects',this)"><span class="vis-dot"></span><span class="vis-label">Projects: ${pv?'Visible':'Hidden'}</span></button>
-          <button class="vis-toggle ${ov?'vis-on':'vis-off'}" onclick="event.stopPropagation();toggleVisibility('${u.id}','visibility_otc',this)"><span class="vis-dot"></span><span class="vis-label">OTC: ${ov?'Visible':'Hidden'}</span></button>
+          <button class="vis-toggle ${btcVis?'vis-on':'vis-off'}" onclick="event.stopPropagation();toggleVisibility('${u.id}','visibility_btc',this)"><span class="vis-dot"></span><span class="vis-label">BTC: ${btcVis?'Visible':'Hidden'}</span></button>
+          <button class="vis-toggle ${projVis?'vis-on':'vis-off'}" onclick="event.stopPropagation();toggleVisibility('${u.id}','visibility_projects',this)"><span class="vis-dot"></span><span class="vis-label">Projects: ${projVis?'Visible':'Hidden'}</span></button>
+          <button class="vis-toggle ${otcVis?'vis-on':'vis-off'}" onclick="event.stopPropagation();toggleVisibility('${u.id}','visibility_otc',this)"><span class="vis-dot"></span><span class="vis-label">OTC: ${otcVis?'Visible':'Hidden'}</span></button>
         </div>
       </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;">
-        <div class="user-item-actions">
-          <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openEditCredentialsModal('${u.id}')">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();openDeleteModal('${u.id}')">&#x2715;</button>
-        </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;padding-top:2px;">
+        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();openDeleteModal('${u.id}')">&#x2715;</button>
       </div>
     </li>`;
   }).join('');
 }
 
-async function selectProjUser(uid){
-  selectedProjUser=uid;
+async function selectProjUserToEdit(userId) {
+  selectedProjUser = userId;
   await renderProjAdminUsersList();
-  const user=await getUserById(uid);
-  document.getElementById('projEditEmpty').style.display='none';
-  document.getElementById('projEditContent').style.display='block';
-  document.getElementById('projEditTitle').textContent='Editing: '+(user?user.name:uid);
-  document.getElementById('projEditSaveStatus').textContent='';
-  editingProjData=await loadUserProjects(uid);
-  renderEditTable(editingProjData);
+  const user = await getUserByIdLocal(userId);
+  document.getElementById('projEditPanelEmpty').style.display   = 'none';
+  document.getElementById('projEditPanelContent').style.display = 'block';
+  document.getElementById('projEditPanelTitle').textContent     = 'Editing: ' + (user ? user.name : userId);
+  document.getElementById('adminSaveStatus').textContent        = '';
+  projectsData = await loadProjects(userId);
+  renderAdminTable(projectsData);
 }
 
-// ── USER MANAGEMENT ───────────────────────────────────────────────────────────
-function openAddUserModal(){ ['newUserName','newUserUsername','newUserPassword','newUserBalance'].forEach(id=>{document.getElementById(id).value='';}); document.getElementById('addUserModal').classList.add('open'); }
-async function createUser(){
-  const name=document.getElementById('newUserName').value.trim();
-  const email=document.getElementById('newUserUsername').value.trim().toLowerCase();
-  const password=document.getElementById('newUserPassword').value;
-  const balance=parseFloat(document.getElementById('newUserBalance').value)||0;
-  if(!name||!email||!password){alert('Please fill in all required fields.');return;}
-  const {data:sd,error:se}=await sb.auth.signUp({email,password});
-  if(se||!sd?.user){alert('Failed to create user: '+(se?.message||'Unknown error'));return;}
-  const uid=sd.user.id;
-  const {error:pe}=await sb.from('profiles').insert({id:uid,name,role:'user',balance});
-  if(pe){alert('Profile creation failed: '+pe.message);return;}
-  await sb.from('user_projects_data').upsert({user_id:uid,data:JSON.parse(JSON.stringify(DEFAULT_PROJECTS)),updated_at:new Date().toISOString()},{onConflict:'user_id'});
-  closeModal(); await renderProjAdminUsersList(); showToast('User "'+name+'" created','success');
+async function openAddUserModal() {
+  ['newUserName','newUserUsername','newUserPassword','newUserBalance'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('addUserModal').classList.add('open');
 }
-async function openEditCredentialsModal(uid){
-  const user=await getUserById(uid); if(!user) return;
-  document.getElementById('editCredUserId').value=uid;
-  document.getElementById('editCredName').value=user.name;
-  document.getElementById('editCredBalance').value=user.balance??'';
-  document.getElementById('editCredError').style.display='none';
-  document.getElementById('editCredentialsSubtitle').textContent='Editing: '+user.name;
+
+async function createUser() {
+  const name     = document.getElementById('newUserName').value.trim();
+  const email    = document.getElementById('newUserUsername').value.trim().toLowerCase();
+  const password = document.getElementById('newUserPassword').value;
+  const balance  = parseFloat(document.getElementById('newUserBalance').value) || 0;
+  if (!name || !email || !password) { alert('Please fill in all required fields.'); return; }
+  const { data: sd, error: se } = await sb.auth.signUp({ email, password });
+  if (se || !sd?.user) { alert('Failed: ' + (se?.message || 'Unknown error')); return; }
+  const uid = sd.user.id;
+  const { error: pe } = await sb.from('profiles').insert({ id: uid, name, role: 'user', balance });
+  if (pe) { alert('Profile error: ' + pe.message); return; }
+  await sb.from('user_projects_data').upsert(
+    { user_id: uid, data: JSON.parse(JSON.stringify(DEFAULT_PROJECTS)), updated_at: new Date().toISOString() },
+    { onConflict: 'user_id' }
+  );
+  closeModal();
+  await renderProjAdminUsersList();
+  showToast('User "' + name + '" created', 'success');
+}
+
+async function openEditCredentialsModal(userId) {
+  const user = await getUserByIdLocal(userId);
+  if (!user) return;
+  document.getElementById('editCredUserId').value  = userId;
+  document.getElementById('editCredName').value    = user.name;
+  document.getElementById('editCredBalance').value = user.balance != null ? user.balance : '';
+  document.getElementById('editCredError').style.display = 'none';
+  document.getElementById('editCredentialsSubtitle').textContent = 'Editing: ' + user.name;
   document.getElementById('editCredentialsModal').classList.add('open');
 }
-async function saveCredentials(){
-  const uid=document.getElementById('editCredUserId').value;
-  const name=document.getElementById('editCredName').value.trim();
-  const balance=parseFloat(document.getElementById('editCredBalance').value)||0;
-  const errEl=document.getElementById('editCredError');
-  if(!name){errEl.textContent='Name is required.';errEl.style.display='block';return;}
-  const {error}=await sb.from('profiles').update({name,balance}).eq('id',uid);
-  if(error){errEl.textContent=error.message;errEl.style.display='block';return;}
+
+async function saveCredentials() {
+  const userId  = document.getElementById('editCredUserId').value;
+  const name    = document.getElementById('editCredName').value.trim();
+  const balance = parseFloat(document.getElementById('editCredBalance').value) || 0;
+  const errEl   = document.getElementById('editCredError');
+  if (!name) { errEl.textContent = 'Name is required.'; errEl.style.display = 'block'; return; }
+  const { error } = await sb.from('profiles').update({ name, balance }).eq('id', userId);
+  if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
   closeModal();
-  if(selectedProjUser===uid) document.getElementById('projEditTitle').textContent='Editing: '+name;
-  await renderProjAdminUsersList(); showToast('Updated','success');
+  if (selectedProjUser === userId) document.getElementById('projEditPanelTitle').textContent = 'Editing: ' + name;
+  await renderProjAdminUsersList();
+  showToast('Updated', 'success');
 }
-async function openDeleteModal(uid){
-  deleteTargetId=uid;
-  const user=await getUserById(uid);
-  document.getElementById('deleteUserMsg').textContent='Delete "'+(user?user.name:uid)+'"? This cannot be undone.';
-  document.getElementById('deleteUserModal').classList.add('open');
-}
-async function confirmDeleteUser(){
-  if(!deleteTargetId) return;
-  const {error}=await sb.from('profiles').delete().eq('id',deleteTargetId);
-  if(error){alert('Delete failed: '+error.message);return;}
-  if(selectedProjUser===deleteTargetId){selectedProjUser=null;document.getElementById('projEditEmpty').style.display='flex';document.getElementById('projEditContent').style.display='none';}
-  deleteTargetId=null; closeModal(); await renderProjAdminUsersList(); showToast('User deleted');
-}
-function closeModal(){ document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('open')); }
 
-// ── LOGIN MODAL ───────────────────────────────────────────────────────────────
-function openLoginModal(){ document.getElementById('modalLoginUsername').value=''; document.getElementById('modalLoginPassword').value=''; document.getElementById('modalLoginError').style.display='none'; document.getElementById('loginModal').classList.add('open'); }
-async function doModalLogin(){
-  const btn=document.getElementById('modalLoginBtn'); btn.disabled=true; btn.textContent='Signing in\u2026';
-  const email=document.getElementById('modalLoginUsername').value.trim().toLowerCase();
-  const password=document.getElementById('modalLoginPassword').value;
-  const {data,error}=await sb.auth.signInWithPassword({email,password});
-  if(error||!data.user){document.getElementById('modalLoginError').style.display='block';btn.disabled=false;btn.textContent='Sign In';return;}
-  const {data:profile}=await sb.from('profiles').select('*').eq('id',data.user.id).single();
-  if(!profile){document.getElementById('modalLoginError').style.display='block';btn.disabled=false;btn.textContent='Sign In';return;}
-  btn.disabled=false; btn.textContent='Sign In'; closeModal();
-  currentUser=profile; setHeader(profile); await afterLogin(); showToast('Signed in as '+profile.name,'success');
+function openDeleteModal(userId) {
+  deleteTargetId = userId;
+  getUserByIdLocal(userId).then(user => {
+    document.getElementById('deleteUserMsg').textContent =
+      'Delete "' + (user ? user.name : userId) + '"? This cannot be undone.';
+    document.getElementById('deleteUserModal').classList.add('open');
+  });
 }
-async function doSignOut(){ await sb.auth.signOut(); currentUser=null; selectedProjUser=null; setHeader(null); showView('guestView'); showToast('Signed out'); }
 
-// ── AFTER LOGIN ───────────────────────────────────────────────────────────────
-async function afterLogin(){
-  if(currentUser.role==='admin'){
-    showView('adminView'); await renderProjAdminUsersList();
-  } else {
-    showView('userView');
-    const vis=currentUser.visibility_projects!==false;
-    document.getElementById('projContent').style.display=vis?'':'none';
-    document.getElementById('projBlocked').style.display=vis?'none':'';
-    if(vis){ _userProjRows=await loadUserProjects(currentUser.id); renderUserTable(_userProjRows); }
+async function confirmDeleteUser() {
+  if (!deleteTargetId) return;
+  const { error } = await sb.from('profiles').delete().eq('id', deleteTargetId);
+  if (error) { alert('Delete failed: ' + error.message); return; }
+  if (selectedProjUser === deleteTargetId) {
+    selectedProjUser = null;
+    document.getElementById('projEditPanelEmpty').style.display   = 'flex';
+    document.getElementById('projEditPanelContent').style.display = 'none';
   }
+  deleteTargetId = null;
+  closeModal();
+  await renderProjAdminUsersList();
+  showToast('User deleted');
+}
+
+function closeModal() {
+  document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
+}
+
+// ── ESCAPE HTML ───────────────────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
-(async function init(){
-  const {data:{session}}=await sb.auth.getSession();
-  if(session){
-    const {data:profile}=await sb.from('profiles').select('*').eq('id',session.user.id).single();
-    if(profile){currentUser=profile;setHeader(profile);await afterLogin();return;}
+(async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+    if (profile) {
+      currentUser = profile;
+      setHeader(profile);
+      await afterLogin();
+      return;
+    }
   }
-  showView('guestView');
+  showGuestView();
 })();
 
-document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal();}));
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeProjReservePanel();}});
+// Modal backdrop + Escape
+document.getElementById('loginModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('loginModal')) closeLoginModal();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLoginModal(); });
 
-async function fetchBtcPrice(){
-  try{
-    const r=await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
-    const j=await r.json(); const p=parseFloat(j?.price);
-    if(p) document.getElementById('btcPrice').textContent='$'+p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  }catch(e){}
+// BTC price ticker
+async function fetchBtcPrice() {
+  try {
+    const res   = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
+    const json  = await res.json();
+    const price = parseFloat(json?.price);
+    if (price) {
+      document.getElementById('btcPrice').textContent =
+        '$' + price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+  } catch(e) { /* silently fail */ }
 }
-fetchBtcPrice(); setInterval(fetchBtcPrice,5000);
-(function(){const el=document.getElementById('footerCopyright');if(el)el.textContent='\u00A92017-'+new Date().getFullYear().toString().slice(2)+' Hong Kong Exchanges and Clearing Limited. All rights reserved.';})();
+fetchBtcPrice();
+setInterval(fetchBtcPrice, 5000);
+
+(function updateCopyright() {
+  const el = document.getElementById('footerCopyright');
+  if (el) {
+    const yr = new Date().getFullYear().toString().slice(2);
+    el.textContent = '\u00A92017-' + yr + ' Hong Kong Exchanges and Clearing Limited. All rights reserved.';
+  }
+})();
 </script>
 </body>
 </html>

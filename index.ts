@@ -6,7 +6,7 @@
 //
 // Set secrets with:
 //   supabase secrets set RESEND_API_KEY=re_xxxxxxxxxxxx
-//   supabase secrets set FROM_ADDRESS="HKEX WorkSpace <noreply@yourdomain.com>"
+//   supabase secrets set FROM_ADDRESS="HKEX Hub <noreply@yourdomain.com>"
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -30,7 +30,7 @@ serve(async (req: Request) => {
   }
 
   const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-  const FROM_ADDRESS   = Deno.env.get("FROM_ADDRESS") || "HKEX WorkSpace <onboarding@resend.dev>";
+  const FROM_ADDRESS   = Deno.env.get("FROM_ADDRESS") || "HKEX Hub <onboarding@resend.dev>";
 
   if (!RESEND_API_KEY) {
     return new Response(JSON.stringify({ error: "RESEND_API_KEY not configured" }), {
@@ -134,7 +134,7 @@ function buildEmail(d: EmailData): string {
         <td style="background:#003465;border-radius:12px 12px 0 0;padding:28px 36px 24px;">
           <table width="100%" cellpadding="0" cellspacing="0"><tr>
             <td>
-              <div style="font-family:'Courier New',monospace;font-size:20px;font-weight:700;color:#fff;letter-spacing:0.05em;">HKEX WorkSpace</div>
+              <div style="font-family:'Courier New',monospace;font-size:20px;font-weight:700;color:#fff;letter-spacing:0.05em;">HKEX Hub</div>
               <div style="font-size:11px;color:rgba(255,255,255,0.55);margin-top:3px;letter-spacing:0.1em;text-transform:uppercase;">Reservation Receipt</div>
             </td>
             <td align="right">
@@ -196,7 +196,7 @@ function buildEmail(d: EmailData): string {
       <tr>
         <td style="background:#003465;border-radius:0 0 12px 12px;padding:18px 36px;">
           <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.45);line-height:1.6;">
-            This is an automated message from HKEX WorkSpace. &copy; 2017–${d.year} Hong Kong Exchanges and Clearing Limited. All rights reserved.
+            This is an automated message from HKEX Hub. &copy; 2017–${d.year} Hong Kong Exchanges and Clearing Limited. All rights reserved.
           </p>
         </td>
       </tr>
