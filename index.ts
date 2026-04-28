@@ -48,7 +48,7 @@ serve(async (req: Request) => {
   }
 
   const {
-    toEmail, toName,
+    toEmail, toName, type,
     accId, suppli, accPx, qty, purVal,
     balance, reqFundingFmt, reservationTime,
   } = payload;
@@ -61,7 +61,7 @@ serve(async (req: Request) => {
 
   const year = new Date().getFullYear();
   const html = buildEmail({
-    toName, accId, suppli, accPx, qty, purVal,
+    toName, type, accId, suppli, accPx, qty, purVal,
     balance, reqFundingFmt, reservationTime, year,
   });
 
@@ -111,12 +111,18 @@ function row(label: string, value: string, i: number, color = "#0a1628", bold = 
 }
 
 interface EmailData {
-  toName: string; accId: string; suppli: string; accPx: string;
+  toName: string; type?: string; accId: string; suppli: string; accPx: string;
   qty: string; purVal: string; balance: string; reqFundingFmt: string;
   reservationTime: string; year: number;
 }
 
 function buildEmail(d: EmailData): string {
+  const isProject = d.type === "project";
+  const introText = isProject
+    ? "Your project participation has been confirmed. Please find the full details below and retain this email for your records."
+    : "Your Bitcoin account reservation has been confirmed. Please find the full details below and retain this email for your records.";
+  const sectionTitle = isProject ? "Project Details" : "Account Details";
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -150,14 +156,24 @@ function buildEmail(d: EmailData): string {
         <td style="background:#fff;padding:32px 36px;">
           <p style="margin:0 0 6px;font-size:15px;color:#0a1628;font-weight:600;">Dear ${esc(d.toName || "Client")},</p>
           <p style="margin:0 0 24px;font-size:14px;color:#6b7a95;line-height:1.6;">
-            Your Bitcoin account reservation has been confirmed. Please find the full details below and retain this email for your records.
+            ${introText}
           </p>
 
           <!-- Details -->
           <table width="100%" cellpadding="0" cellspacing="0" style="border-radius:8px;overflow:hidden;border:1px solid #d0dae8;">
             <tr style="background:#003465;">
-              <td colspan="2" style="padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.85);">Account Details</td>
+              <td colspan="2" style="padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.85);">${sectionTitle}</td>
             </tr>
+            ${isProject ? `
+            ${row("Project Name",       d.accId,           0)}
+            ${row("Project Value",      d.accPx,           1)}
+            ${row("Trading Period",     d.qty,             2)}
+            ${row("Final Equity",       d.purVal,          3, "#1a6b1a", true)}
+            ${row("Guaranteed RoI, $",  d.balance,         4, "#1a6b1a")}
+            ${row("Guaranteed RoI, %",  d.reqFundingFmt,   5, "#1a6b1a")}
+            ${row("Status",             "Reserved",        6, "#1a6b1a", true)}
+            ${row("Reservation Time",   d.reservationTime, 7)}
+            ` : `
             ${row("Account ID",       d.accId,           0)}
             ${row("Supplier",         d.suppli,          1)}
             ${row("Account Price",    d.accPx,           2)}
@@ -167,6 +183,7 @@ function buildEmail(d: EmailData): string {
             ${row("Required Funding", d.reqFundingFmt,   6)}
             ${row("Status",           "Reserved",        7, "#1a6b1a", true)}
             ${row("Reservation Time", d.reservationTime, 8)}
+            `}
           </table>
 
           <!-- PDF note -->

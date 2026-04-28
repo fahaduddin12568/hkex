@@ -1027,11 +1027,17 @@ async function sendProjEmail(target) {
   const { p } = target;
   const now = new Date().toLocaleString('en-GB', { dateStyle: 'long', timeStyle: 'short' });
   const payload = {
-    toEmail, toName: currentUser.name, accId: p.name,
-    suppli: 'HKEX Hub Projects', accPx: '$' + fmtAmt(p.value),
-    qty: String(p.period) + ' days', purVal: '$' + fmtAmt(p.final_equity),
-    balance: '$' + fmtAmt(p.roi_usd) + ' guaranteed RoI',
-    reqFundingFmt: p.roi_pct + '% guaranteed return', reservationTime: now,
+    type:          'project',
+    toEmail,
+    toName:        currentUser.name,
+    accId:         p.name,
+    suppli:        'HKEX Hub Projects',
+    accPx:         '$' + fmtAmt(p.value),
+    qty:           String(p.period) + ' days',
+    purVal:        '$' + fmtAmt(p.final_equity),
+    balance:       fmtAmt(p.roi_usd),
+    reqFundingFmt: p.roi_pct + '%',
+    reservationTime: now,
   };
   const functionUrl = 'https://pwrrfsgnkxronosyyirn.supabase.co/functions/v1/send-reservation-email';
   try {
