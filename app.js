@@ -454,12 +454,12 @@ async function confirmReservation() {
   await setUserData(userId, data);
 
   closeModal();
-  closeReservePanel();         // sets reserveTarget = null — target is safe
+  closeReservePanel();
   await renderUserTable(userId, tableId, true);
   showToast('Account reserved successfully', 'success');
 
   generateReservationPDF(target);
-  sendReservationEmail(target); // async, non-blocking
+  sendReservationEmail(target);
 }
 
 // ─── PDF RECEIPT ──────────────────────────────────────────────────────────────
@@ -531,7 +531,7 @@ async function sendReservationEmail(target) {
   if (!currentUser) return;
   const { data: { session } } = await sb.auth.getSession();
   const toEmail = session?.user?.email || '';
-  if (!toEmail) { console.warn('No email on session — skipping email'); return; }
+  if (!toEmail) { console.warn('No email on session'); return; }
 
   const now = new Date().toLocaleString('en-GB', { dateStyle: 'long', timeStyle: 'short' });
   const payload = {
@@ -560,7 +560,7 @@ async function sendReservationEmail(target) {
     });
     const json = await res.json();
     if (res.ok) showToast('Confirmation email sent to ' + toEmail, 'success');
-    else { console.error('Email send failed:', json); showToast('Reservation confirmed — email could not be sent'); }
+    else { console.error('Email failed:', json); showToast('Reservation confirmed — email could not be sent'); }
   } catch (err) {
     console.error('Email error:', err);
     showToast('Reservation confirmed — email could not be sent');
