@@ -123,6 +123,26 @@ async function toggleVisibility(userId, field, btnEl) {
   showToast(prefix + ' visibility ' + (newVal ? 'enabled' : 'disabled'), newVal ? 'success' : '');
 }
 
+// ─── USER PROJECTS DATA ──────────────────────────────────────────────────────
+const DEFAULT_PROJECTS = [
+  { name:'Bronze',   value:3500,  period:13, roi_pct:68, roi_usd:2380,  final_equity:5880,  status:'' },
+  { name:'Silver',   value:10000, period:11, roi_pct:72, roi_usd:7200,  final_equity:17200, status:'' },
+  { name:'Gold',     value:25000, period:10, roi_pct:74, roi_usd:18500, final_equity:43500, status:'' },
+  { name:'Platinum', value:50000, period:9,  roi_pct:77, roi_usd:38500, final_equity:88500, status:'' },
+];
+const _projectsCache = {};
+async function getUserProjectsData(userId) {
+  if (_projectsCache[userId]) return JSON.parse(JSON.stringify(_projectsCache[userId]));
+  const { data, error } = await sb.from('user_projects_data').select('data').eq('user_id', userId).single();
+  if (error || !data) { const def = JSON.parse(JSON.stringify(DEFAULT_PROJECTS)); _projectsCache[userId] = def; return JSON.parse(JSON.stringify(def)); }
+  _projectsCache[userId] = data.data; return JSON.parse(JSON.stringify(data.data));
+}
+async function setUserProjectsData(userId, rows) {
+  _projectsCache[userId] = rows;
+  const { error } = await sb.from('user_projects_data').upsert({ user_id: userId, data: rows, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+  if (error) console.error('setUserProjectsData:', error);
+}
+
 async function getUserData(userId) {
   if (_tableCache[userId]) return JSON.parse(JSON.stringify(_tableCache[userId]));
   const { data, error } = await sb.from('table_data').select('data').eq('user_id', userId).single();
@@ -241,7 +261,12 @@ function _afterLogin() {
     startHeartbeat(currentUser.id);
     document.getElementById('userWelcome').textContent = 'Welcome, ' + currentUser.name;
     showPage('user');
-    renderUserTable(currentUser.id, 'userTable', true);
+    const btcVisible = currentUser.visibility_btc !== false;
+    const btcContent = document.getElementById('btcContent');
+    const btcBlocked = document.getElementById('btcBlocked');
+    if (btcContent) btcContent.style.display = btcVisible ? '' : 'none';
+    if (btcBlocked) btcBlocked.style.display  = btcVisible ? 'none' : '';
+    if (btcVisible) renderUserTable(currentUser.id, 'userTable', true);
   }
 }
 
@@ -460,7 +485,8 @@ function openReserveConfirm() {
 
 async function confirmReservation() {
   if (!reserveTarget) return;
-  const { rowIdx, tableId, userId } = reserveTarget;
+  const target = reserveTarget;
+  const { rowIdx, tableId, userId } = target;
   const data = await getUserData(userId);
   if (!data[rowIdx]) data[rowIdx] = [];
   data[rowIdx][STATUS_COL] = 'Reserved';
@@ -469,9 +495,8 @@ async function confirmReservation() {
   closeReservePanel();
   await renderUserTable(userId, tableId, true);
   showToast('Account reserved successfully', 'success');
-  generateReservationPDF(reserveTarget);
-  sendReservationEmail(reserveTarget);
-  reserveTarget = null;
+  generateReservationPDF(target);
+  sendReservationEmail(target);
 }
 
 // ─── PDF RECEIPT ──────────────────────────────────────────────────────────────
@@ -487,7 +512,7 @@ function generateReservationPDF(target) {
     doc.rect(0, 0, 595, 70, 'F');
     doc.setTextColor(255,255,255);
     doc.setFontSize(20); doc.setFont('helvetica','bold');
-    doc.text('HKEX WorkSpace', 40, 38);
+    doc.text('HKEX Hub', 40, 38);
     doc.setFontSize(10); doc.setFont('helvetica','normal');
     doc.text('Reservation Receipt', 40, 56);
 
@@ -528,10 +553,10 @@ function generateReservationPDF(target) {
     doc.setFillColor(0,52,101);
     doc.rect(0, 780, 595, 62, 'F');
     doc.setTextColor(180,200,220); doc.setFontSize(8); doc.setFont('helvetica','normal');
-    doc.text('This document is an automatically generated receipt from HKEX WorkSpace.', 40, 800);
+    doc.text('This document is an automatically generated receipt from HKEX Hub.', 40, 800);
     doc.text('Please retain it for your records. For queries contact your broker.', 40, 814);
     doc.setTextColor(255,255,255);
-    doc.text('HKEX WorkSpace © ' + now.getFullYear(), 40, 828);
+    doc.text('HKEX Hub © ' + now.getFullYear(), 40, 828);
     doc.save(`HKEX_Reservation_${target.accId}_${now.toISOString().slice(0,10)}.pdf`);
   } catch(e) {
     console.warn('PDF generation failed:', e);
@@ -539,15 +564,30 @@ function generateReservationPDF(target) {
   }
 }
 
-function sendReservationEmail(target) {
+async function sendReservationEmail(target) {
   if (!currentUser) return;
-  const toEmail = currentUser.username || '';
-  const now     = new Date().toLocaleString('en-GB', { dateStyle: 'long', timeStyle: 'short' });
-  const subject = encodeURIComponent(`HKEX Account Reservation Confirmed – ${target.accId}`);
-  const body = encodeURIComponent(
-`Dear ${currentUser.name},\n\nYour account reservation has been confirmed.\n\n  Account ID:       ${target.accId}\n  Supplier:         ${target.suppli}\n  Account Price:    ${target.accPx}\n  Quantity (BTC):   ${target.qty}\n  Purchase Value:   ${target.purVal}\n  Status:           Reserved\n  Reservation Time: ${now}\n\nA PDF receipt has been downloaded to your device.\n\nKind regards,\nHKEX WorkSpace`
-  );
-  window.open(`mailto:${toEmail}?subject=${subject}&body=${body}`, '_blank');
+  const { data: { session } } = await sb.auth.getSession();
+  const toEmail = session?.user?.email || '';
+  if (!toEmail) { console.warn('No email on session'); return; }
+  const now = new Date().toLocaleString('en-GB', { dateStyle: 'long', timeStyle: 'short' });
+  const payload = {
+    toEmail, toName: currentUser.name,
+    accId: target.accId || '', suppli: target.suppli || '',
+    accPx: target.accPx || '', qty: String(target.qty || ''),
+    purVal: target.purVal || '', balance: formatAmount(String(target.balance || 0)),
+    reqFundingFmt: target.reqFundingFmt || '—', reservationTime: now,
+  };
+  const functionUrl = 'https://pwrrfsgnkxronosyyirn.supabase.co/functions/v1/send-reservation-email';
+  try {
+    const res  = await fetch(functionUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (session?.access_token || ''), 'apikey': 'sb_publishable_wF1sNNonwFYmm1SoXUuudA_Yz13a-v7' },
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json();
+    if (res.ok) showToast('Confirmation email sent to ' + toEmail, 'success');
+    else { console.error('Email failed:', json); showToast('Reservation confirmed — email could not be sent'); }
+  } catch (err) { console.error('Email error:', err); showToast('Reservation confirmed — email could not be sent'); }
 }
 
 // ─── INPUT HANDLERS ───────────────────────────────────────────────────────────
@@ -772,12 +812,14 @@ async function createUser() {
   const { error: profileErr } = await sb.from('profiles').insert({ id: userId, name, role: 'user', balance });
   if (profileErr) { alert('Profile creation failed: ' + profileErr.message); return; }
 
-  // 3 — Seed default table
+  // 3 — Seed default BTC table
   await setUserData(userId, generateDefaultTable());
+  // 4 — Seed default projects table
+  await setUserProjectsData(userId, JSON.parse(JSON.stringify(DEFAULT_PROJECTS)));
 
   closeModal();
   await renderAdminUsersList();
-  showToast('User "' + name + '" created');
+  showToast('User "' + name + '" created', 'success');
 }
 
 async function openEditCredentialsModal(userId) {
